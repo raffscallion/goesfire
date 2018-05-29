@@ -13,5 +13,8 @@ Imports:
   tidyverse,
   ncdf4,
   RCurl,
-  fs
+  fs,
+  shiny,
+  leaflet,
+  gridExtra
 RoxygenNote: 6.0.1

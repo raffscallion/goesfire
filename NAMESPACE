@@ -3,5 +3,6 @@
 export(batch_process)
 export(download_and_process)
 export(extract_fires)
+export(run_viewer)
 import(ncdf4)
 import(tidyverse)
