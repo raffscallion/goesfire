@@ -50,7 +50,10 @@ shinyServer(function(input, output, session) {
 
   output$map <- renderLeaflet({
     leaflet() %>%
-      addTiles() %>%
+      addProviderTiles(providers$Esri.WorldGrayCanvas, group = "Gray") %>%
+      addProviderTiles(providers$Esri.NatGeoWorldMap, group = "NatGeo") %>%
+      addProviderTiles(providers$Esri.WorldImagery, group = "Imagery") %>%
+      addProviderTiles(providers$Esri.WorldPhysical, group = "Physical") %>%
       fitBounds(-125, 20, -60, 55)
   })
 
@@ -61,9 +64,11 @@ shinyServer(function(input, output, session) {
     leafletProxy("map", data = df) %>%
       clearMarkers() %>%
       clearShapes() %>%
+      clearControls() %>%
       addTerminator(time = time) %>%
       addCircleMarkers(radius = ~sqrt(Area * 100), lng = ~lon,
-                       lat = ~lat, popup = ~paste(Area))
+                       lat = ~lat, popup = ~paste(Area)) %>%
+      addLayersControl(baseGroups = c("Gray", "NatGeo", "Imagery", "Physical"))
   })
 
   output$table <- renderTable({
