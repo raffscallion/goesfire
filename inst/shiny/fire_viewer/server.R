@@ -16,7 +16,9 @@ shinyServer(function(input, output, session) {
       return(NULL)
     }
 
-    df <- purrr::map_dfr(f$datapath, read_csv, col_types = cols())
+    df <- purrr::map_dfr(f$datapath, read_csv, col_types = cols()) %>%
+      mutate(Area = if_else(is.na(Area), 0.01,
+                            if_else(Area < 0.01, 0.01, Area)))
     fires(df)
 
     min_date <- min(df$StartTime)
@@ -65,7 +67,7 @@ shinyServer(function(input, output, session) {
       clearMarkers() %>%
       clearShapes() %>%
       clearControls() %>%
-      addTerminator(time = time) %>%
+      addTerminator(time = time, options = pathOptions(fillOpacity = 0.2)) %>%
       addCircleMarkers(radius = ~sqrt(Area * 100), lng = ~lon,
                        lat = ~lat, popup = ~paste(Area)) %>%
       addLayersControl(baseGroups = c("Gray", "NatGeo", "Imagery", "Physical"))

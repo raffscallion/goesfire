@@ -9,7 +9,7 @@ shinyUI(fluidPage(
   fluidRow(
     column(width = 2,
            sliderInput("timestep", label = "Time step", min = 1, max = 1, value = 1,
-                       animate = animationOptions(interval = 500, loop = TRUE))),
+                       animate = animationOptions(interval = 700, loop = TRUE))),
     column(width = 2, textOutput("time"))
   ),
   fluidRow(
