@@ -74,10 +74,3 @@ batch_process <- function(url, download_path, output_path, outname) {
 
 }
 
-
-url <- "ftp://ftp.class.ncdc.noaa.gov/sub/sraffuse1/52654/"
-download_path <- "../../data/netcdf/"
-output_path <- "../../data/csv/"
-outname <- "GOES_Fires_day2"
-
-
