@@ -31,10 +31,15 @@ extract_fires <- function(filename, vars = c("Temp", "Power", "Area", "DQF", "Ma
     var_array <- ncvar_get(nc, var)
     locs <- which(!is.na(var_array), arr.ind = TRUE)
     vals <- var_array[!is.na(var_array)]
-    dplyr::tibble(x = locs[,1],
-                  y = locs[,2],
+    x <- ncvar_get(nc, "x") # Original code indexed from 1, should use internal index (starts at 0 in this case
+    y <- ncvar_get(nc, "y") # Original code indexed from 1, should use internal index (starts at 0 in this case
+    x_array <- replicate(length(y), x)
+    y_array <- t(replicate(length(x), y))
+    dplyr::tibble(x = x_array[!is.na(var_array)],
+                  y = y_array[!is.na(var_array)],
                   Value = vals,
                   Parameter = var)
+
   }
 
   df <- purrr::map_dfr(vars, get_variable, nc) %>%
