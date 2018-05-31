@@ -31,8 +31,8 @@ extract_fires <- function(filename, vars = c("Temp", "Power", "Area", "DQF", "Ma
     var_array <- ncvar_get(nc, var)
     locs <- which(!is.na(var_array), arr.ind = TRUE)
     vals <- var_array[!is.na(var_array)]
-    x <- ncvar_get(nc, "x") # Original code indexed from 1, should use internal index (starts at 0 in this case
-    y <- ncvar_get(nc, "y") # Original code indexed from 1, should use internal index (starts at 0 in this case
+    x <- ncvar_get(nc, "x")
+    y <- ncvar_get(nc, "y")
     x_array <- replicate(length(y), x)
     y_array <- t(replicate(length(x), y))
     dplyr::tibble(x = x_array[!is.na(var_array)],
