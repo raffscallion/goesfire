@@ -3,6 +3,10 @@ library(shiny)
 library(tidyverse)
 library(leaflet)
 library(gridExtra)
+library(DT)
+
+# Increase max file upload size to 30 mb
+options(shiny.maxRequestSize = 30 * 1024^2)
 
 shinyServer(function(input, output, session) {
 
@@ -69,21 +73,35 @@ shinyServer(function(input, output, session) {
       clearControls() %>%
       addTerminator(time = time, options = pathOptions(fillOpacity = 0.2)) %>%
       addCircleMarkers(radius = ~sqrt(Area * 100), lng = ~lon,
-                       lat = ~lat, popup = ~paste(Area)) %>%
+                       lat = ~lat, popup = ~paste(Area), color = "#e20909") %>%
       addLayersControl(baseGroups = c("Gray", "NatGeo", "Imagery", "Physical"))
   })
 
-  output$table <- renderTable({
+  output$bounds <- renderText({
+    paste(input$map_bounds)
+  })
+
+  output$table <- renderDataTable({
     df <- filtered_fires()
     validate(need(nrow(df) > 0, "Select some files"))
-    df %>%
-      arrange(desc(Area)) %>%
+    # Limit fires by bounds displayed on map
+    bounds <- input$map_bounds
+    df <- filter(df, lat <= bounds[1], lat >= bounds[3],
+                 lon <= bounds[2], lon >= bounds[4]) %>%
       select(-Filename)
+    datatable(df, class = "compact",
+              options = list(order = list(4, "desc"))) %>%
+      formatRound(columns = ~ Area + Power + Temp + lon + lat)
   })
 
   output$ts <- renderPlot({
     df <- fires()
     validate(need(nrow(df > 0), "Select some files"))
+
+    # Limit fires by bounds displayed on map
+    bounds <- input$map_bounds
+    df <- filter(df, lat <= bounds[1], lat >= bounds[3],
+                 lon <= bounds[2], lon >= bounds[4])
 
     df <- group_by(df, StartTime) %>%
       summarise(TotalArea = sum(Area, na.rm = TRUE),

@@ -1,6 +1,7 @@
 
 library(shiny)
 library(leaflet)
+library(DT)
 
 shinyUI(fluidPage(
 
@@ -19,6 +20,6 @@ shinyUI(fluidPage(
            leafletOutput("map"),
            plotOutput("ts")
            ),
-    column(width = 6, tableOutput("table"))
+    column(width = 6, dataTableOutput("table"))
   )
 ))
