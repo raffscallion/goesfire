@@ -87,8 +87,7 @@ shinyServer(function(input, output, session) {
     # Limit fires by bounds displayed on map
     bounds <- input$map_bounds
     df <- filter(df, lat <= bounds[1], lat >= bounds[3],
-                 lon <= bounds[2], lon >= bounds[4]) %>%
-      select(-Filename)
+                 lon <= bounds[2], lon >= bounds[4])
     datatable(df, class = "compact",
               options = list(order = list(4, "desc"))) %>%
       formatRound(columns = ~ Area + Power + Temp + lon + lat)
