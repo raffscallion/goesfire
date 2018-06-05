@@ -13,13 +13,17 @@ shinyUI(fluidPage(
            sliderInput("timestep", label = "Time step", min = 1, max = 1, value = 1,
                        width = "100%",
                        animate = animationOptions(interval = 700, loop = TRUE))),
-    column(width = 2, textOutput("time"))
+    column(width = 2,
+           textOutput("time"),
+           htmlOutput("totals"))
   ),
   fluidRow(
     column(width = 6,
            leafletOutput("map"),
            plotOutput("ts")
            ),
-    column(width = 6, dataTableOutput("table"))
+    column(width = 6,
+           plotOutput("emissions"),
+           dataTableOutput("table"))
   )
 ))

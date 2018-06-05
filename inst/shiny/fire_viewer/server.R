@@ -21,8 +21,8 @@ shinyServer(function(input, output, session) {
     }
 
     df <- purrr::map_dfr(f$datapath, read_csv, col_types = cols()) %>%
-      mutate(Area = if_else(is.na(Area), 0.01,
-                            if_else(Area < 0.01, 0.01, Area)))
+      mutate(Area = if_else(is.na(Area), 0.001,
+                            if_else(Area < 0.001, 0.001, Area)))
     fires(df)
 
     min_date <- min(df$StartTime)
@@ -88,9 +88,16 @@ shinyServer(function(input, output, session) {
     bounds <- input$map_bounds
     df <- filter(df, lat <= bounds[1], lat >= bounds[3],
                  lon <= bounds[2], lon >= bounds[4])
-    datatable(df, class = "compact",
+    d <- datatable(df, class = "compact",
               options = list(order = list(4, "desc"))) %>%
-      formatRound(columns = ~ Area + Power + Temp + lon + lat)
+      formatRound(columns = ~ Power + Temp, digits = 1) %>%
+      formatRound(columns = ~ lon + lat, digits = 2) %>%
+      formatRound(columns = ~ Area, digits = 4)
+    if ("TPM" %in% names(df)) {
+      d <- d %>%
+        formatRound(columns = ~ FRE + TPM, digits = 0)
+    }
+    d
   })
 
   output$ts <- renderPlot({
@@ -119,6 +126,60 @@ shinyServer(function(input, output, session) {
       geom_vline(xintercept = current)
     grid.arrange(g1, g2, g3)
 
+  })
+
+  output$totals <- renderUI({
+    df <- fires()
+    if (is.null(df)) {
+      return(NULL)
+    }
+    if (!"TPM" %in% names(df)) {
+      return(NULL)
+    }
+
+    # Limit fires by bounds displayed on map
+    bounds <- input$map_bounds
+    df <- filter(df, lat <= bounds[1], lat >= bounds[3],
+                 lon <= bounds[2], lon >= bounds[4])
+
+    FRE <- paste0("<b>Total FRE: </b>",
+                  formatC(sum(df$FRE, na.rm = TRUE), digits = 0, big.mark = ",",
+                          format = "f"),
+                  " MJ")
+    tpm <- sum(df$TPM, na.rm = TRUE)
+    TPM <- paste0("<b>Total PM: </b>",
+                  formatC(tpm, digits = 0, big.mark = ",", format = "f"),
+                  " kg (",
+                  formatC(tpm * 0.0011023, digits = 0, big.mark = ",", format = "f"),
+                  " tons)")
+
+    HTML(paste(FRE, TPM, sep = "<br>"))
+
+  })
+
+  output$emissions <- renderPlot({
+    df <- fires()
+    validate(need(nrow(df > 0), "Select some files"))
+    validate(need("TPM" %in% names(df), "No emissions in file"))
+
+    # Limit fires by bounds displayed on map
+    bounds <- input$map_bounds
+    df <- filter(df, lat <= bounds[1], lat >= bounds[3],
+                 lon <= bounds[2], lon >= bounds[4])
+
+    df <- group_by(df, StartTime) %>%
+      summarise(TotalFRE = sum(FRE, na.rm = TRUE),
+                TotalTPM = sum(TPM, na.rm = TRUE))
+
+    current <- filtered_fires() %>%
+      slice(1) %>%
+      .$StartTime
+
+    g1 <- ggplot(df, aes(x = StartTime, y = TotalFRE)) + geom_line(colour = "red") +
+      geom_vline(xintercept = current)
+    g2 <- ggplot(df, aes(x = StartTime, y = TotalTPM)) + geom_line(colour = "blue") +
+      geom_vline(xintercept = current)
+    grid.arrange(g1, g2)
   })
 
 })

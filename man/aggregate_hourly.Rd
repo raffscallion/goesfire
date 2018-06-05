@@ -14,7 +14,8 @@ A data frame of hourly aggregate fires
 }
 \description{
 A simple convenience function to turn raw extracted fires into hourly aggregates. Area
-and power are summed, temperature is averaged, and all mask values are listed.
+is summed, power and temperature are averaged, and all mask values are listed. If FRE
+and TPM emissions are present, they are summed as well.
 }
 \examples{
 hourly_fires <- aggregate_hourly(fires)

@@ -8,7 +8,7 @@ batch_process(url, download_path, output_path, outname)
 }
 \arguments{
 \item{url}{Subscription FTP location (e.g.,
-"ftp://ftp.class.ncdc.noaa.gov/sub/sraffuse1/52654/")}
+"ftp://ftp.avl.class.noaa.gov/sub/sraffuse1/52654/")}
 
 \item{download_path}{Local path where netcdf files are stored}
 
@@ -27,6 +27,6 @@ the download_path. The new files will be downloaded and processed, with the resu
 concatenated into a sinlge csv output file
 }
 \examples{
-df <- batch_process("ftp://ftp.class.ncdc.noaa.gov/sub/sraffuse1/52654/",
+df <- batch_process("ftp://ftp.avl.class.noaa.gov/sub/sraffuse1/52654/",
  "../../data/netcdf/", "../../data/csv/", "GOES_Fires")
 }
