@@ -46,7 +46,7 @@ download_and_process <- function(filename, url, download_path,
 #' concatenated into a sinlge csv output file
 #'
 #' @param url Subscription FTP location (e.g.,
-#'   "ftp://ftp.class.ncdc.noaa.gov/sub/sraffuse1/52654/")
+#'   "ftp://ftp.avl.class.noaa.gov/sub/sraffuse1/52654/")
 #' @param download_path Local path where netcdf files are stored
 #' @param output_path Local path where output csv will be written
 #' @param outname Name of output csv. The script will add a time stamp
@@ -54,7 +54,7 @@ download_and_process <- function(filename, url, download_path,
 #' @return A data frame that matches the output csv
 #' @export
 #'
-#' @examples df <- batch_process("ftp://ftp.class.ncdc.noaa.gov/sub/sraffuse1/52654/",
+#' @examples df <- batch_process("ftp://ftp.avl.class.noaa.gov/sub/sraffuse1/52654/",
 #'  "../../data/netcdf/", "../../data/csv/", "GOES_Fires")
 batch_process <- function(url, download_path, output_path, outname) {
 

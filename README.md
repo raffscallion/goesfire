@@ -21,8 +21,7 @@ To facilitate routine processing of data from a CLASS subscription, something li
 ```
 library(goesfire)
 
-url <- "ftp://ftp.class.ncdc.noaa.gov/sub/[username]/[subscription_number]/"
-# Note that on June 5, the ftp address will change to ftp.avl.class.noaa.gov
+url <- "ftp://ftp.avl.class.noaa.gov/sub/[username]/[subscription_number]/"
 download_path <- "local path for downloading netcdf files"
 output_path <- "local path for processed csv files"
 outname <- "GOES_FDC" # this will get prepended to the output filenames

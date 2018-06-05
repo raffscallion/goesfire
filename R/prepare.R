@@ -31,6 +31,11 @@ extract_fires <- function(filename, vars = c("Temp", "Power", "Area", "DQF", "Ma
     var_array <- ncvar_get(nc, var)
     locs <- which(!is.na(var_array), arr.ind = TRUE)
     vals <- var_array[!is.na(var_array)]
+    scale <- ncatt_get(nc, var, "scale_factor")
+    offset <- ncatt_get(nc, var, "add_offset")
+    if (scale$hasatt) {
+      vals <- vals * scale$value + offset$value
+    }
     x <- ncvar_get(nc, "x")
     y <- ncvar_get(nc, "y")
     x_array <- replicate(length(y), x)
@@ -39,7 +44,6 @@ extract_fires <- function(filename, vars = c("Temp", "Power", "Area", "DQF", "Ma
                   y = y_array[!is.na(var_array)],
                   Value = vals,
                   Parameter = var)
-
   }
 
   df <- purrr::map_dfr(vars, get_variable, nc) %>%
