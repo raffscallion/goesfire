@@ -88,6 +88,9 @@ shinyServer(function(input, output, session) {
     bounds <- input$map_bounds
     df <- filter(df, lat <= bounds[1], lat >= bounds[3],
                  lon <= bounds[2], lon >= bounds[4])
+    if ("Filename" %in% names(df)) {
+      df <- select(df, -Filename)
+    }
     d <- datatable(df, class = "compact",
               options = list(order = list(4, "desc"))) %>%
       formatRound(columns = ~ Power + Temp, digits = 1) %>%
