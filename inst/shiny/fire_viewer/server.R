@@ -4,11 +4,14 @@ library(tidyverse)
 library(leaflet)
 library(gridExtra)
 library(DT)
+library(cowplot)
 
 # Increase max file upload size to 30 mb
 options(shiny.maxRequestSize = 30 * 1024^2)
 
 shinyServer(function(input, output, session) {
+
+  theme_set(theme_minimal())
 
   fires <- reactiveVal()
   fire_times <- reactiveVal()
@@ -127,7 +130,7 @@ shinyServer(function(input, output, session) {
       geom_vline(xintercept = current)
     g3 <- ggplot(df, aes(x = StartTime, y = TotalPower)) + geom_line(colour = "green") +
       geom_vline(xintercept = current)
-    grid.arrange(g1, g2, g3)
+    plot_grid(g1, g2, g3, align = "v", nrow = 3)
 
   })
 
@@ -182,7 +185,7 @@ shinyServer(function(input, output, session) {
       geom_vline(xintercept = current)
     g2 <- ggplot(df, aes(x = StartTime, y = TotalTPM)) + geom_line(colour = "blue") +
       geom_vline(xintercept = current)
-    grid.arrange(g1, g2)
+    plot_grid(g1, g2, align = "v", nrow = 2)
   })
 
 })
