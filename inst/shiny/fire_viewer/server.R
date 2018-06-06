@@ -2,6 +2,7 @@
 library(shiny)
 library(tidyverse)
 library(leaflet)
+library(leaflet.extras)
 library(gridExtra)
 library(DT)
 library(cowplot)
@@ -63,7 +64,9 @@ shinyServer(function(input, output, session) {
       addProviderTiles(providers$Esri.NatGeoWorldMap, group = "NatGeo") %>%
       addProviderTiles(providers$Esri.WorldImagery, group = "Imagery") %>%
       addProviderTiles(providers$Esri.WorldPhysical, group = "Physical") %>%
-      fitBounds(-125, 20, -60, 55)
+      fitBounds(-125, 20, -60, 55) %>%
+      addFullscreenControl(pseudoFullscreen = TRUE) %>%
+      addLayersControl(baseGroups = c("Gray", "NatGeo", "Imagery", "Physical"))
   })
 
   observe({
@@ -73,11 +76,9 @@ shinyServer(function(input, output, session) {
     leafletProxy("map", data = df) %>%
       clearMarkers() %>%
       clearShapes() %>%
-      clearControls() %>%
       addTerminator(time = time, options = pathOptions(fillOpacity = 0.2)) %>%
       addCircleMarkers(radius = ~sqrt(Area * 100), lng = ~lon,
-                       lat = ~lat, popup = ~paste(Area), color = "#e20909") %>%
-      addLayersControl(baseGroups = c("Gray", "NatGeo", "Imagery", "Physical"))
+                       lat = ~lat, popup = ~paste(Area), color = "#e20909")
   })
 
   output$bounds <- renderText({
