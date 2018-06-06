@@ -4,7 +4,8 @@
 \alias{batch_process}
 \title{batch_process}
 \usage{
-batch_process(url, download_path, output_path, outname)
+batch_process(url, download_path, output_path, outname,
+  calc_emissions = FALSE, feer = NULL)
 }
 \arguments{
 \item{url}{Subscription FTP location (e.g.,
@@ -15,6 +16,11 @@ batch_process(url, download_path, output_path, outname)
 \item{output_path}{Local path where output csv will be written}
 
 \item{outname}{Name of output csv. The script will add a time stamp}
+
+\item{calc_emissions}{logical Calculate emissions (FRE and TPM) using FEER}
+
+\item{feer}{The FEERv1.0_Ce.csv file loaded as a data frame. This can be acquired from
+\url{https://feer.gsfc.nasa.gov/}}
 }
 \value{
 A data frame that matches the output csv

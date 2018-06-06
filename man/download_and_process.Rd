@@ -5,7 +5,8 @@
 \title{download_and_process}
 \usage{
 download_and_process(filename, url, download_path, vars = c("Temp", "Power",
-  "Area", "DQF", "Mask"), maskvals = c(10, 11, 30, 31))
+  "Area", "DQF", "Mask"), maskvals = c(10, 11, 30, 31),
+  calc_emissions = FALSE, feer = NULL)
 }
 \arguments{
 \item{filename}{A netcdf filename}
@@ -21,6 +22,11 @@ default, all per-pixel variables are processed.}
 values to include in the output. The default is c(10, 11, 30, 31). If not included,
 all pixels will be processed and the output will be very large. Passed to
 \code{\link{extract_fires}}}
+
+\item{calc_emissions}{logical Calculate emissions (FRE and TPM) using FEER}
+
+\item{feer}{The FEERv1.0_Ce.csv file loaded as a data frame. This can be acquired from
+\url{https://feer.gsfc.nasa.gov/}}
 }
 \value{
 A data frame of processed fire data, and the original file downloaded in

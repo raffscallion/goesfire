@@ -37,3 +37,38 @@ Once some fires have been processed to csv, you can use the viewer to look at th
 goesfire::run_viewer()
 ```
 To use the viewer, select a list of processed csv files and they will be displayed on the map and time series.
+
+
+### Emissions processing
+
+An estimate of total particulate matter emissions can be calculated by using the emission coefficients available from [NASA FEER](https://feer.gsfc.nasa.gov/). The code has been tested with the FEERv1.0_Ce.csv file acquired from the FEER website. In this example, a folder of FDC csv files produced with `extract_fires()` is concatenated into a single output csv with calculated emissions. The emissions files can also be explored with the viewer.
+
+```
+library(goesfire)
+library(fs)
+library(tidyverse)
+
+input_path <- "C:/my_csv_path/"
+output_path <- "C:/my_emissions_path/"
+outname <- "GOES_Emissions.csv"
+
+# The first 6 lines are descriptive header and -9999 is the fill value
+feer <- read_csv("/path_to_feer/FEERv1.0_Ce.csv", skip = 6, na = "-9999")
+
+files <- dir_ls(input_path, glob = "*.csv")
+
+emissions <- map_dfr(files, read_csv, col_types = cols()) %>%
+  goesfire::feer_emissions(feer) %>%
+  aggregate_hourly()
+
+# Write to csv
+write_csv(emissions, paste0(output_path, outname))
+```
+
+### Hourly aggregation
+
+To aggregate the sub-hourly data, use the `aggregate_hourly()` function.
+```
+hourly <- extract_fires(infile, vars = vars, maskvals = maskvals) %>%
+  aggregate_hourly()
+```
