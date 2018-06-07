@@ -10,36 +10,35 @@
 #' @return A data frame of hourly aggregate fires
 #' @export
 #'
-#' @import tidyverse
+#' @importFrom magrittr %>%
+#' @importFrom rlang .data
 #'
 #' @examples hourly_fires <- aggregate_hourly(fires)
 aggregate_hourly <- function(fires) {
 
-  require(tidyverse)
-
   if(!"TPM" %in% names(fires)) {
     fires %>%
-      mutate(StartTime = lubridate::floor_date(StartTime, unit = "hours")) %>%
-      group_by(lon, lat, StartTime) %>%
-      summarise(Area = sum(Area, na.rm = TRUE),
-                DQF = paste(unique(DQF), collapse = ";"),
-                Mask = paste(unique(Mask), collapse = ";"),
-                Power = mean(Power, na.rm = TRUE),
-                Temp = mean(Temp, na.rm = TRUE)) %>%
-      ungroup()
+      dplyr::mutate(StartTime = lubridate::floor_date(.data$StartTime, unit = "hours")) %>%
+      dplyr::group_by(.data$lon, .data$lat, .data$StartTime) %>%
+      dplyr::summarise(Area = sum(.data$Area, na.rm = TRUE),
+                DQF = paste(unique(.data$DQF), collapse = ";"),
+                Mask = paste(unique(.data$Mask), collapse = ";"),
+                Power = mean(.data$Power, na.rm = TRUE),
+                Temp = mean(.data$Temp, na.rm = TRUE)) %>%
+      dplyr::ungroup()
 
   } else {
     fires %>%
-      mutate(StartTime = lubridate::floor_date(StartTime, unit = "hours")) %>%
-      group_by(lon, lat, StartTime) %>%
-      summarise(Area = sum(Area, na.rm = TRUE),
-                DQF = paste(unique(DQF), collapse = ";"),
-                Mask = paste(unique(Mask), collapse = ";"),
-                Power = mean(Power, na.rm = TRUE),
-                Temp = mean(Temp, na.rm = TRUE),
-                FRE = sum(FRE, na.rm = TRUE),
-                TPM = sum(TPM, na.rm = TRUE)) %>%
-      ungroup()
+      dplyr::mutate(StartTime = lubridate::floor_date(.data$StartTime, unit = "hours")) %>%
+      dplyr::group_by(.data$lon, .data$lat, .data$StartTime) %>%
+      dplyr::summarise(Area = sum(.data$Area, na.rm = TRUE),
+                DQF = paste(unique(.data$DQF), collapse = ";"),
+                Mask = paste(unique(.data$Mask), collapse = ";"),
+                Power = mean(.data$Power, na.rm = TRUE),
+                Temp = mean(.data$Temp, na.rm = TRUE),
+                FRE = sum(.data$FRE, na.rm = TRUE),
+                TPM = sum(.data$TPM, na.rm = TRUE)) %>%
+      dplyr::ungroup()
 
   }
 }
@@ -57,23 +56,24 @@ aggregate_hourly <- function(fires) {
 #' @return A data frame with FEER information and TPM (in kg) attached
 #' @export
 #'
+#' @importFrom magrittr %>%
+#' @importFrom rlang .data
+#'
 #' @examples emissions <- feer_emissions(fires, feer)
 feer_emissions <- function(fires, feer) {
 
-  require(tidyverse)
-
   # FEER is on a 1x1 degree grid, centered on half degrees. Can join on whole degrees.
-  feer <- mutate(feer, lon1d = floor(Longitude),
-                 lat1d = floor(Latitude)) %>%
-    select(lon1d, lat1d, Ce_850, QA_850)
+  feer <- dplyr::mutate(feer, lon1d = floor(.data$Longitude),
+                 lat1d = floor(.data$Latitude)) %>%
+    dplyr::select(.data$lon1d, .data$lat1d, .data$Ce_850, .data$QA_850)
 
-  fires <- mutate(fires, lon1d = floor(lon),
-                  lat1d = floor(lat)) %>%
-    left_join(feer, by = c("lon1d", "lat1d")) %>%
-    mutate(Seconds = as.double(EndTime - StartTime, units = "secs"),
-           FRE = Power * Seconds, # MW * s = MJ
-           Ce_850 = if_else(is.na(Ce_850), 0.0159, Ce_850),
-           TPM = FRE * Ce_850) # MJ * kg/MJ = kg TPM
+  fires <- dplyr::mutate(fires, lon1d = floor(.data$lon),
+                  lat1d = floor(.data$lat)) %>%
+    dplyr::left_join(feer, by = c("lon1d", "lat1d")) %>%
+    dplyr::mutate(Seconds = as.double(.data$EndTime - .data$StartTime, units = "secs"),
+           FRE = .data$Power * .data$Seconds, # MW * s = MJ
+           Ce_850 = dplyr::if_else(is.na(.data$Ce_850), 0.0159, .data$Ce_850),
+           TPM = .data$FRE * .data$Ce_850) # MJ * kg/MJ = kg TPM
 
 
 }

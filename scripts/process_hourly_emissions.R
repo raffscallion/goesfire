@@ -6,7 +6,7 @@ library(tidyverse)
 
 input_path <- "C:/Users/sraffuse/Google Drive/Working/JVA/GOES-R Fire/data/csv/testing/"
 output_path <- "C:/Users/sraffuse/Google Drive/Working/JVA/GOES-R Fire/data/csv/emissions/"
-outname <- "GOES_Emissions.csv"
+outname <- "GOES_EmissionsTest.csv"
 
 feer <- read_csv("../../data/feer/FEERv1.0_Ce.csv", skip = 6, na = "-9999")
 

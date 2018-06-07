@@ -1,9 +1,9 @@
 
 library(shiny)
-library(tidyverse)
+library(dplyr)
+library(ggplot2)
 library(leaflet)
 library(leaflet.extras)
-library(gridExtra)
 library(DT)
 library(cowplot)
 

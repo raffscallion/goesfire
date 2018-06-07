@@ -33,8 +33,8 @@ download_and_process <- function(filename, url, download_path,
     return(NULL)
   } else {
     print(paste0("Processing ", filename))
-    download.file(paste0(url, filename), paste0(download_path, filename), mode = "wb",
-                  quiet = TRUE)
+    utils::download.file(paste0(url, filename), paste0(download_path, filename),
+                         mode = "wb", quiet = TRUE)
     infile <- fs::path(download_path, filename)
     df <- extract_fires(infile, vars = vars, maskvals = maskvals)
     if (calc_emissions) {
@@ -75,7 +75,7 @@ batch_process <- function(url, download_path, output_path, outname,
   filenames <- RCurl::getURL(url, ftp.use.epsv = FALSE, dirlistonly = TRUE)
   filenames <- unlist(strsplit(filenames, "\r\n"))
   # ncdf files only
-  files <- filenames[grepl(glob2rx("*.nc"), filenames)]
+  files <- filenames[grepl(utils::glob2rx("*.nc"), filenames)]
   # CONUS only
   files <- files[grepl("FDCC", files)]
 
