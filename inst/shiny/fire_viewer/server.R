@@ -81,10 +81,6 @@ shinyServer(function(input, output, session) {
                        lat = ~lat, popup = ~paste(Area), color = "#e20909")
   })
 
-  output$bounds <- renderText({
-    paste(input$map_bounds)
-  })
-
   output$table <- renderDataTable({
     df <- filtered_fires()
     validate(need(nrow(df) > 0, "Select some files"))

@@ -28,6 +28,7 @@ extract_fires <- function(filename, vars = c("Temp", "Power", "Area", "DQF", "Ma
 
   # grab the requested items and splice them together
   get_variable <- function(var, nc) {
+
     var_array <- ncvar_get(nc, var)
     locs <- which(!is.na(var_array), arr.ind = TRUE)
     vals <- var_array[!is.na(var_array)]
@@ -51,6 +52,17 @@ extract_fires <- function(filename, vars = c("Temp", "Power", "Area", "DQF", "Ma
 
   if ("Mask" %in% vars & !is.null(maskvals)) {
     df <- filter(df, Mask %in% maskvals)
+  }
+
+  # If the requested data are empty, return an empty data frame with the correct shape
+  if (nrow(df) == 0) {
+    df <- mutate(df, lon = numeric(0),
+                 lat = numeric(0),
+                 Filename = character(0),
+                 StartTime = .POSIXct(double(0)),
+                 EndTime = .POSIXct(double(0))) %>%
+      select(-x , -y)
+    return(df)
   }
 
   # Get the parameters needed for geolocation
