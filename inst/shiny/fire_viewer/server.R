@@ -99,7 +99,7 @@ shinyServer(function(input, output, session) {
       formatRound(columns = ~ Area, digits = 4)
     if ("TPM" %in% names(df)) {
       d <- d %>%
-        formatRound(columns = ~ FRE + TPM, digits = 0)
+        formatRound(columns = ~ FRE + TPM + Heat_BTU + PM25, digits = 0)
     }
     d
   })

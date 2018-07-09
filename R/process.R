@@ -37,7 +37,9 @@ aggregate_hourly <- function(fires) {
                 Power = mean(.data$Power, na.rm = TRUE),
                 Temp = mean(.data$Temp, na.rm = TRUE),
                 FRE = sum(.data$FRE, na.rm = TRUE),
-                TPM = sum(.data$TPM, na.rm = TRUE)) %>%
+                TPM = sum(.data$TPM, na.rm = TRUE),
+                Heat_BTU = sum(.data$Heat_BTU, na.rm = TRUE),
+                PM25 = sum(.data$PM25, na.rm = TRUE)) %>%
       dplyr::ungroup()
 
   }
@@ -47,7 +49,8 @@ aggregate_hourly <- function(fires) {
 #'
 #' Estimate emissions of total PM using the smoke emissions coefficient lookup developed
 #' by the NASA Fire Energetics and Emissions Research group. If a Ce value is missing, we
-#' use a fill value of 0.0159 kg/MJ, which is the global median.
+#' use a fill value of 0.0159 kg/MJ, which is the global median. Also calculates total
+#' heat assuming a radiant fraction and PM2.5 assuming a ratio of PM2.5 to TPM
 #'
 #' @param feer The FEERv1.0_Ce.csv file loaded as a data frame. This can be acquired from
 #'   \url{https://feer.gsfc.nasa.gov/}
@@ -73,7 +76,9 @@ feer_emissions <- function(fires, feer) {
     dplyr::mutate(Seconds = as.double(.data$EndTime - .data$StartTime, units = "secs"),
            FRE = .data$Power * .data$Seconds, # MW * s = MJ
            Ce_850 = dplyr::if_else(is.na(.data$Ce_850), 0.0159, .data$Ce_850),
-           TPM = .data$FRE * .data$Ce_850) # MJ * kg/MJ = kg TPM
+           TPM = .data$FRE * .data$Ce_850, # MJ * kg/MJ = kg TPM
+           Heat_BTU = (TPM / 0.4) * 947.8, # Based on Xrad of 40% from Sukhinin
+           PM25 = TPM * 0.8) # Based on analysis of Sawtooth wilderness PM
 
 
 }
