@@ -27,19 +27,10 @@ extract_fires <- function(filename, vars = c("Temp", "Power", "Area", "DQF", "Ma
   # grab the requested items and splice them together
   get_variable <- function(var, nc) {
 
+    # NOTE - ncvar_get applies scaling factor itself
     var_array <- ncvar_get(nc, var)
     locs <- which(!is.na(var_array), arr.ind = TRUE)
     vals <- var_array[!is.na(var_array)]
-    scale <- ncatt_get(nc, var, "scale_factor")
-    offset <- ncatt_get(nc, var, "add_offset")
-
-    # NOTE - It appears that the Area variable is not scaled, despite having a scale and
-    # offset (to be confirmed with NOAA). We are ignoring the scaling for now.
-    if (var != "Area") {
-      if (scale$hasatt) {
-        vals <- vals * scale$value + offset$value
-      }
-    }
 
     x <- ncvar_get(nc, "x")
     y <- ncvar_get(nc, "y")
