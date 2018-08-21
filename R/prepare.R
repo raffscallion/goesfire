@@ -29,7 +29,7 @@ extract_fires <- function(filename, vars = c("Temp", "Power", "Area", "DQF", "Ma
 
     # NOTE - ncvar_get applies scaling factor itself
     var_array <- ncvar_get(nc, var)
-    locs <- which(!is.na(var_array), arr.ind = TRUE)
+    #locs <- which(!is.na(var_array), arr.ind = TRUE)
     vals <- var_array[!is.na(var_array)]
 
     x <- ncvar_get(nc, "x")
@@ -96,38 +96,4 @@ extract_fires <- function(filename, vars = c("Temp", "Power", "Area", "DQF", "Ma
 }
 
 
-#' goes_lonlat
-#'
-#' Converts GOES xy radian coordinates to latitude and longitude pairs
-#'
-#' @param x x value from the netcdf in radians (scale and offset already applied)
-#' @param y y value from the netcdf in radians (scale and offset already applied)
-#' @param r_eq semi_major_axis
-#' @param r_pol semi_minor_axis
-#' @param H satellite height from center of earth = perspective_point_height +
-#'   semi_major_axis
-#' @param lambda0 longitude_of_projection_origin (converted to radians)
-#'
-#' @return a named list with lon and lat values
-#'
-#' @examples coords <- goes_lonlat(x_rad, y_rad, r_eq, r_pol, H, lambda0)
-goes_lonlat <- function(x, y, r_eq, r_pol, H, lambda0) {
 
-  # Calculate distnace from satellite to point of interest
-  a <- sin(x)^2 + cos(x)^2 * (cos(y)^2 + (r_eq^2 / r_pol^2) * sin(y)^2)
-  b <- -2 * H * cos(x) * cos(y)
-  c <- H^2 - r_eq^2
-  r_s <- (-b - sqrt(b^2 - 4 * a * c)) / (2 * a)
-
-  # Satellite coordinates
-  sx <- r_s * cos(x) * cos(y)
-  sy <- -r_s * sin(x)
-  sz <- r_s * cos(x) * sin(y)
-
-  # Coordinates in degrees
-  lon <- ((lambda0 - atan(sy / (H - sx))) * 180) / pi
-  lat <- (atan((r_eq^2 / r_pol^2) * (sz / sqrt((H - sx)^2 + sy^2))) * 180) / pi
-
-  return(list("lon"=lon, "lat"=lat))
-
-}

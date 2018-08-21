@@ -18,7 +18,8 @@ A data frame with FEER information and TPM (in kg) attached
 \description{
 Estimate emissions of total PM using the smoke emissions coefficient lookup developed
 by the NASA Fire Energetics and Emissions Research group. If a Ce value is missing, we
-use a fill value of 0.0159 kg/MJ, which is the global median.
+use a fill value of 0.0159 kg/MJ, which is the global median. Also calculates total
+heat assuming a radiant fraction and PM2.5 assuming a ratio of PM2.5 to TPM
 }
 \examples{
 emissions <- feer_emissions(fires, feer)
