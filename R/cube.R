@@ -17,7 +17,7 @@
 #' @return A tibble of with x,y, lat,lon, start time, and the variables requested
 #' @export
 #'
-#' @import netcdf4
+#' @import ncdf4
 #' @importFrom magrittr %>%
 #'
 #' @examples
@@ -43,13 +43,13 @@ create_cube <- function(bbox, date_range, variables = c("Mask", "Area", "Power")
   files <- file_list[(start_dates > date_range[[1]] & start_dates < date_range[[2]])]
   files <- files[!is.na(files)] # not sure why an NA is appended
 
-  # For the geographic subsetting, open just the first file to determine the grid cells
-  # needed. This assumes that the orbit is not changing, which should be reasonable for
-  # this analysis.
+  # This code assumes that the grids are the same for all time slices, which is true as
+  # long as no time periods cross orbit changes
   if (is.null(coords)) {
     nc <- nc_open(files[1])
     print("Determining needed coordinates")
     coords <- get_coord_grid(nc)
+    nc_close(nc)
   }
 
   # Determine which records are required spatially. Add about 4 km as a buffer

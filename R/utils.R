@@ -1,6 +1,25 @@
 
 # Various helper functions
 
+safe_nc_open <- purrr::safely(nc_open)
+
+#' get_coord_bounds
+#'
+#' Determines the x and y bounds (in radians) for a given netcdf handle
+#'
+#' @param nc
+#'
+#' @return A named list with x1, x2, y1, and y2
+#' @export
+#'
+#' @examples
+get_coord_bounds <- function(nc) {
+  x_bounds <- ncvar_get(nc, "x_image_bounds")
+  y_bounds <- ncvar_get(nc, "y_image_bounds")
+  list(x1 = x_bounds[1], x2 = x_bounds[2], y1 = y_bounds[1], y2 = y_bounds[2])
+}
+
+
 #' get_coord_grid
 #'
 #' Given a netCDF file, returns a data frame of decimal degree lon/lat pairs
