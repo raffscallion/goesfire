@@ -86,6 +86,9 @@ extract_fires <- function(filename, vars = c("Temp", "Power", "Area", "DQF", "Ma
   end_time <- as.POSIXct(ncatt_get(nc, 0, "time_coverage_end")$value,
                          tz = "UTC", format = "%Y-%m-%dT%T")
 
+  # Close the netcdf file
+  nc_close(nc)
+
   df <- dplyr::mutate(df,
                Filename = fname,
                StartTime = start_time,
