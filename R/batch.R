@@ -63,6 +63,7 @@ download_and_process <- function(filename, url, download_path,
 #' @param calc_emissions logical Calculate emissions (FRE and TPM) using FEER
 #' @param feer The FEERv1.0_Ce.csv file loaded as a data frame. This can be acquired from
 #'   \url{https://feer.gsfc.nasa.gov/}
+#' @param maskvals Mask values to include
 #'
 #' @return A data frame that matches the output csv
 #' @export
@@ -70,7 +71,8 @@ download_and_process <- function(filename, url, download_path,
 #' @examples df <- batch_process("ftp://ftp.avl.class.noaa.gov/sub/sraffuse1/52654/",
 #'  "../../data/netcdf/", "../../data/csv/", "GOES_Fires")
 batch_process <- function(url, download_path, output_path, outname,
-                          calc_emissions = FALSE, feer = NULL) {
+                          calc_emissions = FALSE, feer = NULL,
+                          maskvals = c(10, 11, 30, 31)) {
 
   filenames <- RCurl::getURL(url, ftp.use.epsv = FALSE, dirlistonly = TRUE)
   filenames <- unlist(strsplit(filenames, "\r\n"))
@@ -80,7 +82,8 @@ batch_process <- function(url, download_path, output_path, outname,
   files <- files[grepl("FDCC", files)]
 
   df <- purrr::map_dfr(files, download_and_process, url, download_path,
-                       calc_emissions = calc_emissions, feer = feer)
+                       calc_emissions = calc_emissions, feer = feer,
+                       maskvals = maskvals)
 
   outname <- paste(outname, as.character(Sys.time(), format = "%Y%m%d-%H%M%S"))
   readr::write_csv(df, fs::path(output_path, outname, ext = "csv"))

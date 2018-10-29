@@ -49,6 +49,16 @@ extract_fires <- function(filename, vars = c("Temp", "Power", "Area", "DQF", "Ma
     df <- dplyr::filter(df, .data$Mask %in% maskvals)
   }
 
+  # If a variable is all null, it will need to be added here
+  missing <- setdiff(vars,names(df))
+  for (m in missing) {
+    if (nrow(df) > 0) {
+      df[[m]] <- NA
+    } else {
+      df[[m]] <- numeric(0)
+    }
+  }
+
   # If the requested data are empty, return an empty data frame with the correct shape
   if (nrow(df) == 0) {
     df <- dplyr::mutate(df, lon = numeric(0),
