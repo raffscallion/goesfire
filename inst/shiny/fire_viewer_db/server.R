@@ -56,6 +56,7 @@ shinyServer(function(input, output, session) {
     df <- group_by(df, StartTime) %>%
       summarise(FireCount = n(),
                 TotalArea = sum(Area, na.rm = TRUE),
+                TotalFRE = sum(FRE, na.rm = TRUE),
                 TotalPM25 = sum(PM25, na.rm = TRUE))
 
 
@@ -146,6 +147,25 @@ shinyServer(function(input, output, session) {
                                 layer = "below")),
              xaxis = list(title = ""),
              yaxis = list(title = "Fire Area (km2)", zeroline = FALSE))
+
+  })
+
+  output$total_fre <- renderPlotly({
+    df <- plot_data()
+    validate(need(nrow(df > 0), "No fires"))
+
+    plot_ly(df) %>%
+      add_lines(x = ~StartTime, y = ~TotalFRE) %>%
+      layout(shapes = list(list(type = "rect",
+                                x0 = as.character(input$datetimes[1], tz = Sys.timezone()),
+                                x1 = as.character(input$datetimes[2], tz = Sys.timezone()),
+                                y0 = min(df$TotalFRE),
+                                y1 = max(df$TotalFRE),
+                                fillcolor = "rgb(240,248,255",
+                                line = list(color = "rgb(240,248,255)"),
+                                layer = "below")),
+             xaxis = list(title = ""),
+             yaxis = list(title = "FRE (MJ)", zeroline = FALSE))
 
   })
 

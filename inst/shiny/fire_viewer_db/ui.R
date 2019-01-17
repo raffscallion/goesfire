@@ -37,11 +37,13 @@ shinyUI(fluidPage(
            actionButton("model", "Model Inputs"))
   ),
   fluidRow(
-    column(width = 4,
+    column(width = 3,
            plotlyOutput("fire_count", height = "300px")),
-    column(width = 4,
+    column(width = 3,
            plotlyOutput("fire_area", height = "300px")),
-    column(width = 4,
+    column(width = 3,
+           plotlyOutput("total_fre", height = "300px")),
+    column(width = 3,
            plotlyOutput("total_pm", height = "300px"))
   )
 ))
