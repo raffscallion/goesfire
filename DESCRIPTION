@@ -1,7 +1,7 @@
 Package: goesfire
 Type: Package
 Title: Tools for the GOES-ABI Fire (Hot Spot Characterization) Product
-Version: 0.0.0.9017
+Version: 0.0.0.9018
 Author: Sean Raffuse
 Maintainer: Sean Raffuse <sraffuse@ucdavis.edu>
 Description: Utilities and scripts for acquiring and processing the GOES-ABI Fire (Hot 
@@ -13,13 +13,15 @@ Imports:
   dplyr,
   fs,
   lubridate,
+  imputeTS,
   magrittr,
   ncdf4,
   purrr,
   RCurl,
   readr,
   rlang,
-  tidyr
+  tidyr,
+  stringr
 Suggests:
   cowplot,
   DT,
@@ -27,4 +29,4 @@ Suggests:
   leaflet,
   leaflet.extras,
   shiny
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0
