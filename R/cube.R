@@ -143,3 +143,43 @@ process_fire_cubes <- function(df, input_path, output_path,
               output_path)
 
 }
+
+
+#' Refine a goesfire cube to only the points that fall within a polygon
+#'
+#' @param cube A goesfire cube data.frame as produced by \code{\link{create_cube}}
+#' @param polygon A simple feature polygon (or multipolygon)
+#' @param buffer Buffer distance in km (default = 4)
+#' @param crs Coordinate reference system: integer with EPSG code, or character with
+#'   proj4string (default is 5070 - Albers Equal Area)
+#'
+#' @return A goesfire cube data.frame, subsetted by the polygon
+#' @export
+#'
+#' @importFrom magrittr %>%
+#'
+#' @examples
+cube_subset <- function(cube, polygon, buffer = 4, crs = 5070) {
+
+  # Buffer the polygon
+  buffered <- polygon %>%
+    sf::st_transform(crs) %>% # Work in Albers Equal Area projection
+    sf::st_buffer(dist = buffer * 1000)
+
+  cube_locs <- cube %>%
+    dplyr::select(x, y, lon, lat) %>%
+    dplyr::distinct()
+
+  locs_sf <- sf::st_as_sf(cube_locs, coords = c("lon", "lat"),
+                          crs = "+proj=longlat +datum=WGS84",
+                          remove = FALSE)
+
+  locs_subset <- suppressWarnings(
+    sf::st_transform(locs_sf, crs) %>%
+    sf::st_intersection(buffered) %>%
+    sf::st_set_geometry(NULL) %>%
+    dplyr::select(x, y))
+
+  dplyr::right_join(cube, locs_subset, by = c("x", "y"))
+
+}
