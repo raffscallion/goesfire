@@ -5,7 +5,7 @@
 \title{batch_process}
 \usage{
 batch_process(url, download_path, output_path, outname,
-  calc_emissions = FALSE, feer = NULL)
+  calc_emissions = FALSE, feer = NULL, maskvals = c(10, 11, 30, 31))
 }
 \arguments{
 \item{url}{Subscription FTP location (e.g.,
@@ -21,6 +21,8 @@ batch_process(url, download_path, output_path, outname,
 
 \item{feer}{The FEERv1.0_Ce.csv file loaded as a data frame. This can be acquired from
 \url{https://feer.gsfc.nasa.gov/}}
+
+\item{maskvals}{Mask values to include}
 }
 \value{
 A data frame that matches the output csv

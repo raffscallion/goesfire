@@ -4,8 +4,8 @@
 \alias{process_fire_cubes}
 \title{process_fire_cubes}
 \usage{
-process_fire_cubes(df, input_path, output_path, variables = c("Mask", "Area",
-  "Power"), coords = NULL)
+process_fire_cubes(df, input_path, output_path, variables = c("Mask",
+  "Area", "Power"), coords = NULL)
 }
 \arguments{
 \item{df}{A data frame with the following fields: fire_name and sf_id (will be the name

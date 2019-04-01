@@ -55,7 +55,8 @@ get_pthourly_frp <- function(df) {
     dplyr::mutate(Interpolated = imputeTS::na.interpolation(Power),
                   Hour = lubridate::round_date(StartTime, unit = "hour")) %>%
     dplyr::group_by(lat, lon, Hour) %>%
-    dplyr::summarise(Power = mean(Interpolated, na.rm = TRUE)) %>%
+    dplyr::summarise(Power = mean(Interpolated, na.rm = TRUE),
+                     Ce_850 = mean(Ce_850, na.rm = TRUE)) %>%
     dplyr::filter(is.finite(Power)) %>%
     dplyr::mutate(Energy = Power * 3600)
 
@@ -113,4 +114,32 @@ get_bluesky_fire_locations <- function(df, fire_name, final_area) {
 
 }
 
+create_bluesky_hourly <- function(hourlydf, fire_name, final_area) {
 
+  # Work in UTC
+  initial_tz <- Sys.timezone()
+  Sys.setenv(TZ = "UTC")
+  on.exit(Sys.setenv(TZ = initial_tz))
+
+  # Create an id for each location
+  locs <- hourlydf %>%
+    dplyr::ungroup() %>%
+    dplyr::select(lon, lat, Ce_850) %>%
+    dplyr::distinct() %>%
+    dplyr::mutate(id = dplyr::row_number())
+
+  # Compute hourly area, PM2.5, and heat
+  df <- dplyr::inner_join(hourlydf, locs, by = c("lon", "lat", "Ce_850")) %>%
+    dplyr::mutate(id = paste(fire_name, id, sep = "_"),
+                  event_id = fire_name,
+                  date_time = strftime(Hour, format = "%Y%m%d%H00%z"),
+                  date_time = paste0(stringr::str_sub(date_time, 1, 15), ":00"),
+                  area_acres = Fraction * final_area,
+                  TPM = Energy * Ce_850,
+                  pm25_tons = TPM * 0.8 * 0.00110231,
+                  heat_btu = (TPM / 0.4) * 947.8) %>%
+    dplyr::select(event_id, id, date_time, latitude = lat, longitude = lon, area_acres,
+                  power_mw = Power, pm25_tons, heat_btu)
+
+
+}

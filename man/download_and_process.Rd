@@ -4,8 +4,8 @@
 \alias{download_and_process}
 \title{download_and_process}
 \usage{
-download_and_process(filename, url, download_path, vars = c("Temp", "Power",
-  "Area", "DQF", "Mask"), maskvals = c(10, 11, 30, 31),
+download_and_process(filename, url, download_path, vars = c("Temp",
+  "Power", "Area", "DQF", "Mask"), maskvals = c(10, 11, 30, 31),
   calc_emissions = FALSE, feer = NULL)
 }
 \arguments{
