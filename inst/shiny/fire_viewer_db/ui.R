@@ -7,6 +7,8 @@ shinyUI(fluidPage(
     column(width = 2,
            dateRangeInput("date_range", label = "Date Range", start = date_start,
                           end = date_end, min = date_min, max = date_end)),
+    column(width = 1, actionButton("set_dates", "Update",
+                                   style = "margin-top: 25px; float: left")),
     column(width = 8, offset = 1,
            sliderInput("datetimes", label = "Times (UTC)",
                        min = date_range[[2]] - 60 * 60 * 24 * 3, # 3 days

@@ -1,10 +1,11 @@
 
 shinyServer(function(input, output, session) {
 
-  # Update the time slider when the date range is changed
+  # Update the time slider when the date range is changed via button
   observe({
-    start <- as.POSIXct(input$date_range[1], tz = Sys.timezone())
-    end <- as.POSIXct(input$date_range[2], tz = Sys.timezone()) + 24 * 60 * 60
+    input$set_dates
+    start <- as.POSIXct(isolate(input$date_range[1]), tz = Sys.timezone())
+    end <- as.POSIXct(isolate(input$date_range[2]), tz = Sys.timezone()) + 24 * 60 * 60
     updateSliderInput(session, "datetimes", min = start, max = end, value = c(start, end))
   })
 
@@ -16,10 +17,14 @@ shinyServer(function(input, output, session) {
   filtered_fires <- reactive({
     if (is.null(input$masks)) return(NULL)
 
+    # Don't fire if dates are changed unless button is pressed
+    input$set_dates
+    date_range <- isolate(input$date_range)
+
     fires %>%
       filter(Mask %in% input$masks,
-             StartTime >= input$date_range[1],
-             StartTime <= input$date_range[2]) %>%
+             StartTime >= date_range[1],
+             StartTime <= date_range[2]) %>%
       collect() %>%
       mutate(Label = glue::glue("({formatC(lon, digits = 6)}, {formatC(lat, digits = 5)})<br/>",
                                 "{StartTime}<br/>",
@@ -86,7 +91,7 @@ shinyServer(function(input, output, session) {
       addProviderTiles(providers$Esri.NatGeoWorldMap, group = "NatGeo") %>%
       addProviderTiles(providers$Esri.WorldImagery, group = "Imagery") %>%
       addProviderTiles(providers$Esri.WorldPhysical, group = "Physical") %>%
-      fitBounds(-125, 20, -60, 55)
+      setView(-98, 38, zoom = 5)
   })
 
   observe({
