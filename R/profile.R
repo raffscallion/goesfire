@@ -1,46 +1,11 @@
 
-#' Title
-#'
-#' @param df
-#' @param span
-#'
-#' @return
-#' @export
-#'
-#' @importFrom magrittr %>%
-#'
-#' @examples
-get_hourly_profile <- function(df, span = 0.1) {
-
-  hourly <- df %>%
-    dplyr::mutate(Hour = lubridate::floor_date(StartTime, unit = "hour")) %>%
-    dplyr::group_by(Hour) %>%
-    dplyr::summarise(Count = n())
-
-  # Fill empty hours with 0 so loess is bounded
-  times <- tibble(Hour = seq.POSIXt(from = min(hourly$Hour),
-                                    to = max(hourly$Hour),
-                                    by = "1 hour"))
-  hourly <- dplyr::left_join(times, hourly, by = "Hour") %>%
-    dplyr::mutate(Count = if_else(is.na(Count), 0L, Count))
-
-  model <- loess(Count ~ as.numeric(Hour), data = hourly, span = 0.1)
-
-  pred <- dplyr::mutate(hourly, Pred = predict(model, Hour),
-                 Pred = dplyr::if_else(Pred < 0, 0, Pred))
-
-  total <- sum(pred$Pred)
-  pred_count <- dplyr::mutate(pred, Fraction = Pred / total) %>%
-    dplyr::rename(CountSmooth = Pred)
-
-}
-
-
 #' Calculate hourly FRP and FRE for each satellite grid point, using imputed values for
 #' fire mask values with no FRP reported. Also report fraction of total energy across all
 #' points and time steps for each hour/point
 #'
-#' @param df
+#' @param feer
+#' @param maskvals
+#' @param cube
 #'
 #' @return
 #' @export
@@ -48,22 +13,53 @@ get_hourly_profile <- function(df, span = 0.1) {
 #' @importFrom magrittr %>%
 #'
 #' @examples
-get_pthourly_frp <- function(df) {
+get_pthourly_frp <- function(cube, feer,
+                             maskvals = c(10, 11, 12, 13, 14, 15,
+                                          30, 31, 32, 33, 34, 35)) {
 
-  hourly <- df %>%
+  if (!is.null(maskvals)) {
+    cube <- cube %>%
+      dplyr::filter(Mask %in% maskvals)
+  }
+
+  # Count valid power values by location - need at least 2 to interpolate, otherwise use
+  # the minimum value of 75
+  valids <- cube %>%
+    dplyr::group_by(lon, lat) %>%
+    dplyr::summarise(ValidCount = sum(is.finite(Power)))
+
+  invalids <- dplyr::filter(valids, ValidCount < 2)
+  valids <- dplyr::filter(valids, ValidCount >= 2)
+
+  hourly <- cube %>%
+    dplyr::inner_join(valids, by = c("lon", "lat")) %>%
     dplyr::group_by(lon, lat) %>%
     dplyr::mutate(Interpolated = imputeTS::na.interpolation(Power),
-                  Hour = lubridate::round_date(StartTime, unit = "hour")) %>%
+                  Hour = lubridate::round_date(time, unit = "hour")) %>%
     dplyr::group_by(lat, lon, Hour) %>%
     dplyr::summarise(Power = mean(Interpolated, na.rm = TRUE),
-                     Ce_850 = mean(Ce_850, na.rm = TRUE)) %>%
+                     Count = n()) %>%
     dplyr::filter(is.finite(Power)) %>%
-    dplyr::mutate(Energy = Power * 3600)
+    dplyr::mutate(FRE = Power * 3600) # MW * s = MJ
 
-  total_energy <- sum(hourly$Energy)
+  feer_d <- feer %>%
+    dplyr::mutate(lon1d = floor(Longitude),
+                  lat1d = floor(Latitude)) %>%
+    dplyr::select(lon1d, lat1d, Ce_850, QA_850)
+
+  hourly <- hourly %>%
+    dplyr::mutate(lon1d = floor(lon),
+                  lat1d = floor(lat)) %>%
+    dplyr::left_join(feer_d, by = c("lon1d", "lat1d")) %>%
+    dplyr::mutate(Ce_850 = dplyr::if_else(is.na(Ce_850), 0.0159, Ce_850),
+                  TPM = FRE * Ce_850, # MJ * kg/MJ = kg TPM
+                  Heat_BTU = (TPM / 0.4) * 947.8, # Based on Xrad of 40% from Sukhinin
+                  PM25 = TPM * 0.8) # Based on analysis of Sawtooth wilderness PM
+
+  total_energy <- sum(hourly$FRE)
 
   hourly %>%
-    dplyr::mutate(Fraction = Energy / total_energy) %>%
+    dplyr::mutate(Fraction = FRE / total_energy) %>%
     dplyr::ungroup()
 
 }

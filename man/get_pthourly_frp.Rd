@@ -6,10 +6,11 @@
 fire mask values with no FRP reported. Also report fraction of total energy across all
 points and time steps for each hour/point}
 \usage{
-get_pthourly_frp(df)
+get_pthourly_frp(cube, feer, maskvals = c(10, 11, 12, 13, 14, 15, 30, 31,
+  32, 33, 34, 35))
 }
 \arguments{
-\item{df}{}
+\item{cube}{}
 }
 \description{
 Calculate hourly FRP and FRE for each satellite grid point, using imputed values for
