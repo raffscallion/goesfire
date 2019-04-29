@@ -75,11 +75,13 @@ calculate_sofiev <- function(fires, met_file) {
   # Subset of the values we need converted from arrays to lists
 
   # This approach is slow, but functional
+
+  ## Terrain height came out wrong... try reversing i and j
   extract_var <- function(i, j, var, dims) {
     if (dims == 3) {
-      ncdf4::ncvar_get(nc, var)[i, j,]
+      ncdf4::ncvar_get(nc, var)[j, i,]
     } else if (dims == 4) {
-      ncdf4::ncvar_get(nc, var)[i, j,,]
+      ncdf4::ncvar_get(nc, var)[j, i,,]
     }
   }
 
@@ -206,7 +208,7 @@ sofiev_plume_top <- function(H_abl, N2_FT, FRP, P_f0 = 1e6, N2_0 = 2.5e-4, alpha
                              beta = 170, gamma = 0.35, delta = 0.6) {
 
   # This equation requires FRP in W, but we store it in MW
-  FRP <- FRP * 1000
+  FRP <- FRP * 1e6
   H_p <- alpha * H_abl + beta * (FRP / P_f0)^gamma * exp(-delta * N2_FT / N2_0)
 
 }
