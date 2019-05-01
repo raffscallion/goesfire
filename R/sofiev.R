@@ -1,7 +1,15 @@
 
-### Calculate hourly plume top heights using the method of Sofiev et al (2012) and met
-### data from WRF
 
+#' Calculate hourly plume top heights using the method of Sofiev et al (2012) and met data
+#' from WRF
+#'
+#' @param fires data frame of fire locations produced by get_pthourly_frp
+#' @param met_path path for exported met files
+#'
+#' @return
+#' @export
+#'
+#' @examples
 calculate_plume_top <- function(fires, met_path) {
 
   # Which met files do we need? Add that info to the fires df

@@ -3,6 +3,7 @@
 export(aggregate_hourly)
 export(assign_met_files)
 export(batch_process)
+export(calculate_plume_top)
 export(create_cube)
 export(cube_subset)
 export(download_and_process)
