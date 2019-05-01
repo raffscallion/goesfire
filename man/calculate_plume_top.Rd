@@ -10,7 +10,7 @@ calculate_plume_top(fires, met_path)
 \arguments{
 \item{fires}{data frame of fire locations produced by get_pthourly_frp}
 
-\item{met_path}{path for exported met files}
+\item{met_path}{path to wrf met files}
 }
 \description{
 Calculate hourly plume top heights using the method of Sofiev et al (2012) and met data
