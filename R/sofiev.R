@@ -4,7 +4,7 @@
 #' from WRF
 #'
 #' @param fires data frame of fire locations produced by get_pthourly_frp
-#' @param met_path path for exported met files
+#' @param met_path path to wrf met files
 #'
 #' @return
 #' @export

@@ -16,7 +16,6 @@
 get_pthourly_frp <- function(cube, feer,
                              maskvals = c(10, 11, 12, 13, 14, 15,
                                           30, 31, 32, 33, 34, 35)) {
-
   if (!is.null(maskvals)) {
     cube <- cube %>%
       dplyr::filter(Mask %in% maskvals)
@@ -41,6 +40,18 @@ get_pthourly_frp <- function(cube, feer,
                      Count = n()) %>%
     dplyr::filter(is.finite(Power)) %>%
     dplyr::mutate(FRE = Power * 3600) # MW * s = MJ
+
+  hourly_invalids <- cube %>%
+    dplyr::inner_join(invalids, by = c("lon", "lat")) %>%
+    dplyr::group_by(lon, lat) %>%
+    dplyr::mutate(Hour = lubridate::round_date(time, unit = "hour")) %>%
+    dplyr::group_by(lat, lon, Hour) %>%
+    dplyr::summarise(Power = 75,
+                     Count = n()) %>%
+    dplyr::filter(is.finite(Power)) %>%
+    dplyr::mutate(FRE = Power * 3600) # MW * s = MJ
+
+  hourly <- dplyr::bind_rows(hourly, hourly_invalids)
 
   feer_d <- feer %>%
     dplyr::mutate(lon1d = floor(Longitude),
