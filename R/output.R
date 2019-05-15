@@ -29,7 +29,6 @@ output_SMOKE <- function(fires, path) {
   ratios <- list(PM10 = 1.18, CO = 11.2, NH3 = 0.185,
                  NOX = 0.194, SO2 = 0.0969, VOC = 2.66)
 
-
   fires <- fires %>%
     dplyr::mutate(PM25 = PM25 * 0.00110231, # short tons per kg
                   PM10 = PM25 * ratios$PM10,
@@ -40,7 +39,7 @@ output_SMOKE <- function(fires, path) {
                   VOC = PM25 * ratios$VOC)
 
   # Need to estimate plume bottom and layer 1 fraction
-  # In BlueSky, plume bottom is assumed to be 50% of plume top, so start there
+  # Set plume bottom to 25% of plume top
 
   # No idea what to use for layer 1 fraction at the moment - this varies a lot in BlueSky,
   # and we need a method to estimate it.
@@ -48,16 +47,13 @@ output_SMOKE <- function(fires, path) {
   # Here is a method to assign more to the first layer for lower FRP
   lay1 <- function(FRP) {
     l <- -0.05*FRP + 55
-    if (l > 60) {
-      l <- 60
-    }
-    if (l < 10) {
-      l <- 10
-    }
+    l[l > 60] <- 60
+    l[l < 10] <- 10
+    return(l)
   }
 
   fires <- fires %>%
-    dplyr::mutate(PBOT = PlumeTop * 0.5,
+    dplyr::mutate(PBOT = PlumeTop * 0.25,
                   LAY1F = lay1(Power))
 
   # Fire names must be <= 11 characters and contain no whitespace
