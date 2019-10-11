@@ -3,9 +3,19 @@ library(shiny)
 library(DBI)
 library(pool)
 library(dplyr)
+library(dbplyr)
 library(leaflet)
 library(leaflet.extras)
 library(plotly)
+library(lubridate)
+library(imputeTS)
+library(htmltools)
+library(htmlwidgets)
+library(sf)
+
+# # For testing only
+# library(reactlog)
+# options(shiny.reactlog = TRUE)
 
 # Get the current TZ (for resetting when done)
 initial_tz <- Sys.timezone()
@@ -13,15 +23,17 @@ Sys.setenv(TZ = "UTC")
 
 # Connect to the db
 if (.Platform$OS.type == "windows") {
-  driver <- "SQL Server"
+  driver <- "PostgreSQL Unicode(x64)"
 } else {
-  driver <- "SQLServer"
+  driver <- "WHATEVER DRIVER YOU'RE USING FOR POSTGRES"
 }
-pool <- dbPool(odbc::odbc(), Driver = driver, Database = "goes", UID = "[user_id]",
-               PWD = "[password]", Server = "ucd-airfire.database.windows.net")
+pool <- dbPool(odbc::odbc(), Driver = driver, Database = "airfire", UID = "user",
+               PWD = "pwd",
+               Server = "postgresql.cx7b6gvf3kxs.us-west-2.rds.amazonaws.com",
+               port = 5432)
 
 # Get min and max date
-fires <- dplyr::tbl(pool, "fires")
+fires <- tbl(pool, in_schema("fire_info", "goes16_detects_shiny_vw"))
 
 date_range <- fires %>%
   summarise(date_min = min(StartTime, na.rm = TRUE),
@@ -30,7 +42,6 @@ date_range <- fires %>%
 date_end <- as.Date(date_range[[2]]) + 1
 date_start <- date_end - 3
 date_min <- as.Date(date_range[[1]])
-
 
 palette <- leaflet::colorFactor("viridis", domain = c(10, 11, 12, 13, 14, 15, 30, 31,
                                                       32, 33, 34, 35))

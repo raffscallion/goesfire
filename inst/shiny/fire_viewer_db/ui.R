@@ -11,8 +11,10 @@ shinyUI(fluidPage(
                                    style = "margin-top: 25px; float: left")),
     column(width = 8, offset = 1,
            sliderInput("datetimes", label = "Times (UTC)",
-                       min = date_range[[2]] - 60 * 60 * 24 * 3, # 3 days
-                       max = date_range[[2]], value = c(date_range[[1]], date_range[[2]]),
+                       min = as.POSIXct(date_start, tz = "UTC"),
+                       max = as.POSIXct(date_end + 1, tz = "UTC"),
+                       value = c(as.POSIXct(date_start, tz = "UTC"),
+                                 as.POSIXct(date_end + 1, tz = "UTC")),
                        width = "100%", step = 60 * 5, animate = TRUE,
                        timezone = "+0000"))
   ),
@@ -35,8 +37,8 @@ shinyUI(fluidPage(
                                               "32 - TF Cloud Contaminated",
                                               "33 - TF High Prob.",
                                               "34 - TF Medium Prob.",
-                                              "35 - TF Low Prob.")),
-           actionButton("model", "Model Inputs"))
+                                              "35 - TF Low Prob."))
+           )
   ),
   fluidRow(
     column(width = 3,
