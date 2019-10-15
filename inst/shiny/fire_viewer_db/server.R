@@ -159,6 +159,8 @@ shinyServer(function(input, output, session) {
       addProviderTiles(providers$Esri.WorldGrayCanvas, group = "Gray", options = providerTileOptions(updateWhenZooming = FALSE, updateWhenIdle = TRUE)) %>%
       addProviderTiles(providers$Esri.NatGeoWorldMap, group = "NatGeo", options = providerTileOptions(updateWhenZooming = FALSE, updateWhenIdle = TRUE)) %>%
       addProviderTiles(providers$Esri.WorldImagery, group = "Imagery", options = providerTileOptions(updateWhenZooming = FALSE, updateWhenIdle = TRUE)) %>%
+      addProviderTiles(providers$Esri.WorldTopoMap, group = "Topo", options = providerTileOptions(updateWhenZooming = FALSE, updateWhenIdle = TRUE)) %>%  
+      addProviderTiles(providers$Esri.WorldTerrain, group = "Terrain", options = providerTileOptions(updateWhenZooming = FALSE, updateWhenIdle = TRUE)) %>%
       addProviderTiles(providers$Esri.WorldPhysical, group = "Physical", options = providerTileOptions(updateWhenZooming = FALSE, updateWhenIdle = TRUE)) %>%
       setView(-98, 38, zoom = 5) %>%
       registerPlugin(plugin_lasso) %>%

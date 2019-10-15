@@ -28,8 +28,8 @@ if (.Platform$OS.type == "windows") {
   driver <- "PostgreSQL Unicode(x64)"
 } else if (.Platform$OS.type == "unix") {
   # When using ODBC, ensure you have drivers installed locally
-  # Install the unixODBC library
-  # apt-get install unixodbc unixodbc-dev odbc-postgresql
+  # For linux install the unixODBC library || apt-get install unixodbc unixodbc-dev odbc-postgresql
+  # For mac use brew or tarball of choice
   driver <- "PostgreSQL Unicode"
 } else {
   driver <- "WHATEVER DRIVER YOU'RE USING FOR POSTGRES"
