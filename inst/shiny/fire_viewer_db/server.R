@@ -155,11 +155,13 @@ shinyServer(function(input, output, session) {
   )
 
   output$map <- renderLeaflet({
-    leaflet() %>%
-      addProviderTiles(providers$Esri.WorldGrayCanvas, group = "Gray") %>%
-      addProviderTiles(providers$Esri.NatGeoWorldMap, group = "NatGeo") %>%
-      addProviderTiles(providers$Esri.WorldImagery, group = "Imagery") %>%
-      addProviderTiles(providers$Esri.WorldPhysical, group = "Physical") %>%
+    leaflet(options = leafletOptions(preferCanvas = TRUE)) %>%
+      addProviderTiles(providers$Esri.WorldGrayCanvas, group = "Gray", options = providerTileOptions(updateWhenZooming = FALSE, updateWhenIdle = TRUE)) %>%
+      addProviderTiles(providers$Esri.NatGeoWorldMap, group = "NatGeo", options = providerTileOptions(updateWhenZooming = FALSE, updateWhenIdle = TRUE)) %>%
+      addProviderTiles(providers$Esri.WorldImagery, group = "Imagery", options = providerTileOptions(updateWhenZooming = FALSE, updateWhenIdle = TRUE)) %>%
+      addProviderTiles(providers$Esri.WorldTopoMap, group = "Topo", options = providerTileOptions(updateWhenZooming = FALSE, updateWhenIdle = TRUE)) %>%  
+      addProviderTiles(providers$Esri.WorldTerrain, group = "Terrain", options = providerTileOptions(updateWhenZooming = FALSE, updateWhenIdle = TRUE)) %>%
+      addProviderTiles(providers$Esri.WorldPhysical, group = "Physical", options = providerTileOptions(updateWhenZooming = FALSE, updateWhenIdle = TRUE)) %>%
       setView(-98, 38, zoom = 5) %>%
       registerPlugin(plugin_lasso) %>%
       # Add lasso control
@@ -192,8 +194,7 @@ shinyServer(function(input, output, session) {
                        fillOpacity = 0.5, weight = 2,
                        fillColor = ~palette(Mask), color = ~palette(Mask), radius = 4) %>%
       addFullscreenControl(pseudoFullscreen = TRUE) %>%
-      addLayersControl(baseGroups = c("Gray", "NatGeo", "Imagery", "Physical"))
-
+      addLayersControl(baseGroups = c("Gray", "Imagery", "Topo", "Terrain", "NatGeo", "Physical"))
 
     if (nrow(df) > 0) {
       lp <- lp %>%
