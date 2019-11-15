@@ -42,12 +42,12 @@ shinyUI(fluidPage(
   ),
   fluidRow(
     column(width = 3,
-           plotlyOutput("fire_count", height = "300px")),
+           withSpinner(plotlyOutput("fire_count", height = "300px")), type=8),
     column(width = 3,
-           plotlyOutput("fire_area", height = "300px")),
+           withSpinner(plotlyOutput("fire_area", height = "300px")), type=8),
     column(width = 3,
-           plotlyOutput("total_fre", height = "300px")),
+           withSpinner(plotlyOutput("total_fre", height = "300px")), type=8),
     column(width = 3,
-           plotlyOutput("total_pm", height = "300px"))
+           withSpinner(plotlyOutput("total_pm", height = "300px")), type=8)
   )
 ))
