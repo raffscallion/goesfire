@@ -76,6 +76,31 @@ shinyServer(function(input, output, session) {
 
   })
 
+  geomac_polys <- reactive({
+
+    # Don't fire if dates are changed unless button is pressed
+    input$set_dates
+    date_range <- isolate(input$date_range)
+
+    fires <- geomac %>%
+      filter(perimeter_date_time_utc >= !!date_range[1],
+             perimeter_date_time_utc < !!(date_range[2] + 1)) %>%
+      mutate(Shape = ST_AsText(shape)) %>%
+      select(-shape) %>%
+      collect()
+
+    if (nrow(fires) > 0) {
+      fires <- fires %>%
+        sf::st_as_sf(wkt = "Shape", crs = 3857) %>%
+        sf::st_transform(crs = 4326) %>%
+        mutate(Label = paste(incident_name, perimeter_date_time_utc))
+    } else {
+      return(NULL)
+    }
+    return(fires)
+
+  })
+
   # Model data is selected by a lasso tool on the map (a custom JS plugin)
   plugin_lasso <- htmlDependency("leaflet-lasso", "2.0.4",
                                  src = "./www",
@@ -120,9 +145,9 @@ shinyServer(function(input, output, session) {
     }
 
     # Now, convert this subset data to sf and find points within
-    sf <- st_as_sf(df, coords = c("lon", "lat"))
+    sf <- sf::st_as_sf(df, coords = c("lon", "lat"))
 
-    d <- dplyr::filter(df, st_within(sf, poly, sparse = FALSE))
+    d <- filter(df, st_within(sf, poly, sparse = FALSE))
     model_data(d)
 
     showModal(modalDialog(
@@ -187,12 +212,20 @@ shinyServer(function(input, output, session) {
       clearMarkers() %>%
       clearShapes() %>%
       clearControls() %>%
-      addTerminator(time = time, options = pathOptions(fillOpacity = 0.2)) %>%
-      addCircleMarkers(lng = ~lon, lat = ~lat, popup = ~Label, opacity = 1,
-                       fillOpacity = 0.5, weight = 2,
+      addTerminator(time = time, options = pathOptions(fillOpacity = 0.2))
+
+    if (!is.null(geomac_polys())) {
+      lp <- lp %>%
+        addPolygons(data = geomac_polys(), color = "#FF0000", fillColor = "#555555",
+                    opacity = 1, weight = 2, label = ~Label, group = "GeoMAC")
+    }
+    lp <- lp %>%
+       addCircleMarkers(lng = ~lon, lat = ~lat, popup = ~Label, opacity = 1,
+                       fillOpacity = 0.5, weight = 2, group = "GOES",
                        fillColor = ~palette(Mask), color = ~palette(Mask), radius = 4) %>%
       addFullscreenControl(pseudoFullscreen = TRUE) %>%
-      addLayersControl(baseGroups = c("Gray", "NatGeo", "Imagery", "Physical"))
+      addLayersControl(baseGroups = c("Gray", "NatGeo", "Imagery", "Physical"),
+                       overlayGroups = c("GeoMAC", "GOES"))
 
 
     if (nrow(df) > 0) {
