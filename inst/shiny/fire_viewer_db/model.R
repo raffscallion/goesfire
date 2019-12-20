@@ -9,13 +9,12 @@ model_inputs <- function(file, data, name, size, type, tz) {
   profile <- get_diurnal_profile(hourly, name, tz)
   daily <- create_bluesky_daily(hourly, name, size, type, tz)
 
-  zfile <- zip_files(file, daily, profile, name)
+  zfile <- zip_files(file, daily, profile, hourly, name)
 
 }
 
 # Get Hourly Profile redux (The S2 version using FRE and per pixel profiles)
 get_hourly_data <- function(df) {
-
   # Count valid power values by location - need at least 2 to interpolate, otherwise use
   # the minimum value of 75
   valids <- df %>%
@@ -29,9 +28,11 @@ get_hourly_data <- function(df) {
     dplyr::inner_join(valids, by = c("lon", "lat")) %>%
     dplyr::group_by(lon, lat) %>%
     dplyr::mutate(Interpolated = imputeTS::na.interpolation(Power),
+                  InterpolatedPM = imputeTS::na.interpolation(PM25),
                   Hour = lubridate::round_date(StartTime, unit = "hour")) %>%
     dplyr::group_by(lat, lon, Hour) %>%
     dplyr::summarise(Power = mean(Interpolated, na.rm = TRUE),
+                     PM25 = sum(InterpolatedPM, na.rm = TRUE),
                      Count = n()) %>%
     dplyr::filter(is.finite(Power)) %>%
     dplyr::mutate(FRE = Power * 3600) # MW * s = MJ
@@ -42,12 +43,14 @@ get_hourly_data <- function(df) {
     dplyr::mutate(Hour = lubridate::round_date(StartTime, unit = "hour")) %>%
     dplyr::group_by(lat, lon, Hour) %>%
     dplyr::summarise(Power = 75,
+                     PM25 = 5,
                      Count = n()) %>%
     dplyr::filter(is.finite(Power)) %>%
     dplyr::mutate(FRE = Power * 3600) # MW * s = MJ
 
   hourly <- dplyr::bind_rows(hourly, hourly_invalids) %>%
-    dplyr::ungroup()
+    dplyr::ungroup() %>%
+    dplyr::mutate(Day = lubridate::floor_date(Hour, unit = "days"))
 
 }
 
@@ -118,8 +121,8 @@ create_bluesky_daily <- function(df, fire_name, final_area, type, tz) {
 
 }
 
-## Create two csv files for each day, and zip them up
-zip_files <- function(file, points, profile, name) {
+## Create three csv files for each day, and zip them up
+zip_files <- function(file, points, profile, hourly, name) {
 
   dir.create(t_dir <- tempfile())
 
@@ -129,24 +132,28 @@ zip_files <- function(file, points, profile, name) {
     dplyr::distinct() %>%
     .$Day
 
-  bluesky_files <- function(day, points, profile, name, temp_dir) {
+  bluesky_files <- function(day, points, profile, hourly, name, temp_dir) {
 
     # filenames based on fire name and timestamp
     points_name <- paste0(temp_dir, "/", "fire_locations_",
                           strftime(day, format = "%Y%m%d_"), name, ".csv")
     profile_name <- paste0(temp_dir, "/", name, "_diurnal_profile_localtime_",
                            strftime(day, format = "%Y%m%d"), ".csv")
+    hourly_name <- paste0(temp_dir, "/", name, "_hourly_localtime_",
+                           strftime(day, format = "%Y%m%d"), ".csv")
 
     # subset data by day
     points <- dplyr::filter(points, Day == day)
     profile <- dplyr::filter(profile, LocalDay == as.character(day))
+    hourly <- dplyr::filter(hourly, Day == day)
 
     readr::write_csv(points, points_name)
     readr::write_csv(profile, profile_name)
+    readr::write_csv(hourly, hourly_name)
 
   }
 
-  purrr::walk(days, bluesky_files, points, profile, name, t_dir)
+  purrr::walk(days, bluesky_files, points, profile, hourly, name, t_dir)
 
   tar(file, t_dir, compression = "gzip")
   return(t_dir)
