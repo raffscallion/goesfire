@@ -42,6 +42,7 @@ pool <- dbPool(odbc::odbc(), Driver = driver, Database = "airfire", UID = "user"
 
 # Get min and max date
 fires <- tbl(pool, in_schema("fire_info", "goes16_detects_shiny_vw"))
+geomac <- tbl(pool, in_schema("fire_info", "geomac_current_fire_perimeters"))
 
 date_range <- fires %>%
   summarise(date_min = min(StartTime, na.rm = TRUE),
