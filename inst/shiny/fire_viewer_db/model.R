@@ -153,6 +153,19 @@ zip_files <- function(file, points, profile, hourly, name) {
 
   }
 
+  # Add a summary of acres and pm2.5 (in tons) per day
+  areas <- points %>%
+    group_by(Day) %>%
+    summarise(Area_acres = sum(area))
+
+  by_day <- hourly %>%
+    group_by(Day) %>%
+    summarise(PM25_tons = sum(PM25) / 907.185) %>%
+    inner_join(areas, by = "Day") %>%
+    mutate(TonsPerAcre = PM25_tons / Area_acres)
+  by_day_name <- paste0(t_dir, "/", "daily_totals_", name, ".csv")
+  readr::write_csv(by_day, by_day_name)
+
   purrr::walk(days, bluesky_files, points, profile, hourly, name, t_dir)
 
   tar(file, t_dir, compression = "gzip")
