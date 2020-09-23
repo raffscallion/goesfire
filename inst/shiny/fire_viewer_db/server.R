@@ -234,7 +234,7 @@ shinyServer(function(input, output, session) {
                        fillOpacity = 0.5, weight = 2, group = "GOES",
                        fillColor = ~palette(Mask), color = ~palette(Mask), radius = 4) %>%
       addFullscreenControl(pseudoFullscreen = TRUE) %>%
-      addLayersControl(baseGroups = c("Topo", "Gray", "Imagery", "Terrain", "NatGeo", "Physical"),
+      addLayersControl(baseGroups = c("NatGeo", "Topo", "Gray", "Imagery", "Terrain", "Physical"),
                        overlayGroups = c("GeoMAC", "GOES"))
 
     if (nrow(df) > 0) {
