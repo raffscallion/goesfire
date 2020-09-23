@@ -31,7 +31,7 @@ shinyServer(function(input, output, session) {
                                 "Area: {formatC(Area, digits = 4)} km<sup>2</sup><br/>",
                                 "Power: {formatC(Power, digits = 4)} MW<br/>",
                                 "Temp: {formatC(Temp, digits = 4)} K<br/>",
-                                "PM2.5: {formatC(PM25, digits = 4)} kg<br/>"))
+                                "PM<sub>2.5</sub>: {formatC(PM25, digits = 4)} kg<br/>"))
   })
 
   map_data <- reactive({
@@ -65,6 +65,14 @@ shinyServer(function(input, output, session) {
     if (!is.null(bounds)) {
       df <- filter(df, lat <= bounds[1], lat >= bounds[3],
                    lon <= bounds[2], lon >= bounds[4])
+    }
+
+    if (input$resolution != "5 minute") {
+      if (input$resolution == "Hourly") {
+        df <- mutate(df, StartTime = lubridate::floor_date(StartTime, "hours"))
+      } else {
+        df <- mutate(df, StartTime = lubridate::floor_date(StartTime, "days"))
+      }
     }
 
     df <- group_by(df, StartTime) %>%
@@ -181,10 +189,10 @@ shinyServer(function(input, output, session) {
 
   output$map <- renderLeaflet({
     leaflet(options = leafletOptions(preferCanvas = TRUE)) %>%
+      addProviderTiles(providers$Esri.WorldTopoMap, group = "Topo", options = providerTileOptions(updateWhenZooming = FALSE, updateWhenIdle = TRUE)) %>%
       addProviderTiles(providers$Esri.WorldGrayCanvas, group = "Gray", options = providerTileOptions(updateWhenZooming = FALSE, updateWhenIdle = TRUE)) %>%
       addProviderTiles(providers$Esri.NatGeoWorldMap, group = "NatGeo", options = providerTileOptions(updateWhenZooming = FALSE, updateWhenIdle = TRUE)) %>%
       addProviderTiles(providers$Esri.WorldImagery, group = "Imagery", options = providerTileOptions(updateWhenZooming = FALSE, updateWhenIdle = TRUE)) %>%
-      addProviderTiles(providers$Esri.WorldTopoMap, group = "Topo", options = providerTileOptions(updateWhenZooming = FALSE, updateWhenIdle = TRUE)) %>%
       addProviderTiles(providers$Esri.WorldTerrain, group = "Terrain", options = providerTileOptions(updateWhenZooming = FALSE, updateWhenIdle = TRUE)) %>%
       addProviderTiles(providers$Esri.WorldPhysical, group = "Physical", options = providerTileOptions(updateWhenZooming = FALSE, updateWhenIdle = TRUE)) %>%
       setView(-98, 38, zoom = 5) %>%
@@ -226,7 +234,7 @@ shinyServer(function(input, output, session) {
                        fillOpacity = 0.5, weight = 2, group = "GOES",
                        fillColor = ~palette(Mask), color = ~palette(Mask), radius = 4) %>%
       addFullscreenControl(pseudoFullscreen = TRUE) %>%
-      addLayersControl(baseGroups = c("Gray", "Imagery", "Topo", "Terrain", "NatGeo", "Physical"),
+      addLayersControl(baseGroups = c("Topo", "Gray", "Imagery", "Terrain", "NatGeo", "Physical"),
                        overlayGroups = c("GeoMAC", "GOES"))
 
     if (nrow(df) > 0) {
@@ -237,81 +245,59 @@ shinyServer(function(input, output, session) {
 
   })
 
-  # Switched to native plotly over ggplotly because of poor support for geom_rect
   output$fire_count <- renderPlotly({
     df <- plot_data()
     validate(need(nrow(df) > 0, "No fires"))
-
-    plot_ly(df) %>%
-      add_lines(x = ~StartTime, y = ~FireCount) %>%
-      layout(shapes = list(list(type = "rect",
-                                x0 = as.character(input$datetimes[1], tz = Sys.timezone()),
-                                x1 = as.character(input$datetimes[2], tz = Sys.timezone()),
-                                y0 = min(df$FireCount),
-                                y1 = max(df$FireCount),
-                                fillcolor = "rgb(240,248,255",
-                                line = list(color = "rgb(240,248,255)"),
-                                layer = "below")),
-             xaxis = list(title = ""),
-             yaxis = list(title = "Fire Pixel Count", zeroline = FALSE))
-
+    ymin <- min(df$FireCount)
+    ymax <- max(df$FireCount)
+    title <- "Fire Pixel Count"
+    time_series_plot(df, ~FireCount, ymin, ymax, title)
   })
 
   output$fire_area <- renderPlotly({
     df <- plot_data()
     validate(need(nrow(df) > 0, "No fires"))
-
-    plot_ly(df) %>%
-      add_lines(x = ~StartTime, y = ~TotalArea) %>%
-      layout(shapes = list(list(type = "rect",
-                                x0 = as.character(input$datetimes[1], tz = Sys.timezone()),
-                                x1 = as.character(input$datetimes[2], tz = Sys.timezone()),
-                                y0 = min(df$TotalArea),
-                                y1 = max(df$TotalArea),
-                                fillcolor = "rgb(240,248,255",
-                                line = list(color = "rgb(240,248,255)"),
-                                layer = "below")),
-             xaxis = list(title = ""),
-             yaxis = list(title = "Fire Area (km2)", zeroline = FALSE))
-
+    ymin <- min(df$TotalArea)
+    ymax <- max(df$TotalArea)
+    title <- "Fire Area (km<sup>2</sup>)"
+    time_series_plot(df, ~TotalArea, ymin, ymax, title)
   })
 
   output$total_fre <- renderPlotly({
     df <- plot_data()
     validate(need(nrow(df) > 0, "No fires"))
-
-    plot_ly(df) %>%
-      add_lines(x = ~StartTime, y = ~TotalFRE) %>%
-      layout(shapes = list(list(type = "rect",
-                                x0 = as.character(input$datetimes[1], tz = Sys.timezone()),
-                                x1 = as.character(input$datetimes[2], tz = Sys.timezone()),
-                                y0 = min(df$TotalFRE),
-                                y1 = max(df$TotalFRE),
-                                fillcolor = "rgb(240,248,255",
-                                line = list(color = "rgb(240,248,255)"),
-                                layer = "below")),
-             xaxis = list(title = ""),
-             yaxis = list(title = "FRE (MJ)", zeroline = FALSE))
-
+    ymin <- min(df$TotalFRE)
+    ymax <- max(df$TotalFRE)
+    title <- "FRE (MJ)"
+    time_series_plot(df, ~TotalFRE, ymin, ymax, title)
   })
 
   output$total_pm <- renderPlotly({
     df <- plot_data()
     validate(need(nrow(df) > 0, "No fires"))
+    ymin <- min(df$TotalPM25)
+    ymax <- max(df$TotalPM25)
+    title <- "PM<sub>2.5</sub> (kg)"
+    time_series_plot(df, ~TotalPM25, ymin, ymax, title)
+  })
+
+
+
+  time_series_plot <- function(df, y, ymin, ymax, title) {
 
     plot_ly(df) %>%
-      add_lines(x = ~StartTime, y = ~TotalPM25) %>%
+      add_lines(x = ~StartTime, y = y) %>%
       layout(shapes = list(list(type = "rect",
                                 x0 = as.character(input$datetimes[1], tz = Sys.timezone()),
                                 x1 = as.character(input$datetimes[2], tz = Sys.timezone()),
-                                y0 = min(df$TotalPM25),
-                                y1 = max(df$TotalPM25),
+                                y0 = ymin,
+                                y1 = ymax,
                                 fillcolor = "rgb(240,248,255",
                                 line = list(color = "rgb(240,248,255)"),
                                 layer = "below")),
              xaxis = list(title = ""),
-             yaxis = list(title = "PM2.5 (kg)", zeroline = FALSE))
+             yaxis = list(title = title, zeroline = FALSE))
 
-  })
+  }
 
 })
