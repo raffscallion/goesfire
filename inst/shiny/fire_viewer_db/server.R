@@ -1,6 +1,20 @@
 
 shinyServer(function(input, output, session) {
 
+  # Update the date range periodically
+  output$date_range <- renderUI({
+    date_range <- fires %>%
+      summarise(date_min = min(StartTime, na.rm = TRUE),
+                date_max = max(StartTime, na.rm = TRUE)) %>%
+      collect()
+    date_end <- as.Date(date_range[[2]]) + 1
+    date_start <- date_end - 3
+    date_min <- as.Date(date_range[[1]])
+    dateRangeInput("date_range", label = "Date Range", start = date_start,
+                   end = date_end, min = date_min, max = date_end)
+  })
+
+
   # Update the time slider when the date range is changed via button
   observeEvent(input$set_dates, {
     start <- as.POSIXct(isolate(input$date_range[1]), tz = Sys.timezone())
@@ -15,6 +29,7 @@ shinyServer(function(input, output, session) {
 
   filtered_fires <- reactive({
     if (is.null(input$masks)) return(NULL)
+    if (is.null(input$date_range)) return(NULL)
 
     # Don't fire if dates are changed unless button is pressed
     input$set_dates
@@ -36,6 +51,7 @@ shinyServer(function(input, output, session) {
 
   map_data <- reactive({
 
+    validate(need(!is.null(filtered_fires()), "Loading"))
     start <- strftime(input$datetimes[1], format = "%Y-%m-%d %T")
     end <- strftime(input$datetimes[2], format = "%Y-%m-%d %T")
 
@@ -84,30 +100,6 @@ shinyServer(function(input, output, session) {
 
   })
 
-  geomac_polys <- reactive({
-
-    # Don't fire if dates are changed unless button is pressed
-    input$set_dates
-    date_range <- isolate(input$date_range)
-
-    fires <- geomac %>%
-      filter(perimeter_date_time_utc >= !!date_range[1],
-             perimeter_date_time_utc < !!(date_range[2] + 1)) %>%
-      mutate(Shape = ST_AsText(shape)) %>%
-      select(-shape) %>%
-      collect()
-
-    if (nrow(fires) > 0) {
-      fires <- fires %>%
-        sf::st_as_sf(wkt = "Shape", crs = 3857) %>%
-        sf::st_transform(crs = 4326) %>%
-        mutate(Label = paste(incident_name, perimeter_date_time_utc))
-    } else {
-      return(NULL)
-    }
-    return(fires)
-
-  })
 
   # Model data is selected by a lasso tool on the map (a custom JS plugin)
   plugin_lasso <- htmlDependency("leaflet-lasso", "2.0.4",
@@ -224,18 +216,13 @@ shinyServer(function(input, output, session) {
       clearControls() %>%
       addTerminator(time = time, options = pathOptions(fillOpacity = 0.2))
 
-    if (!is.null(geomac_polys())) {
-      lp <- lp %>%
-        addPolygons(data = geomac_polys(), color = "#FF0000", fillColor = "#555555",
-                    opacity = 1, weight = 2, label = ~Label, group = "GeoMAC")
-    }
     lp <- lp %>%
        addCircleMarkers(lng = ~lon, lat = ~lat, popup = ~Label, opacity = 1,
                        fillOpacity = 0.5, weight = 2, group = "GOES",
                        fillColor = ~palette(Mask), color = ~palette(Mask), radius = 4) %>%
       addFullscreenControl(pseudoFullscreen = TRUE) %>%
       addLayersControl(baseGroups = c("NatGeo", "Topo", "Gray", "Imagery", "Terrain", "Physical"),
-                       overlayGroups = c("GeoMAC", "GOES"))
+                       overlayGroups = c("GOES"))
 
     if (nrow(df) > 0) {
       lp <- lp %>%
