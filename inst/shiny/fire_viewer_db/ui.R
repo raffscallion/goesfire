@@ -5,8 +5,7 @@ shinyUI(fluidPage(
 
   fluidRow(
     column(width = 2,
-           dateRangeInput("date_range", label = "Date Range", start = date_start,
-                          end = date_end, min = date_min, max = date_end)),
+           uiOutput("date_range")),
     column(width = 1, actionButton("set_dates", "Update",
                                    style = "margin-top: 25px; float: left")),
     column(width = 8, offset = 1,
