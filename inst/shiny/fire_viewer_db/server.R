@@ -1,17 +1,22 @@
 
 shinyServer(function(input, output, session) {
 
-  # Update the date range periodically
+  # Set the date range on session load
   output$date_range <- renderUI({
-    date_range <- fires %>%
-      summarise(date_min = min(StartTime, na.rm = TRUE),
-                date_max = max(StartTime, na.rm = TRUE)) %>%
-      collect()
-    date_end <- as.Date(date_range[[2]]) + 1
-    date_start <- date_end - 3
-    date_min <- as.Date(date_range[[1]])
+
+    date_end <- Sys.Date() + 1
+    date_min <- min_fire_date
+    date_start <- Sys.Date() - 5
+    
+    # Also update the time slider
+    start <- as.POSIXct(date_start, tz = Sys.timezone())
+    end <- as.POSIXct(date_end, tz = Sys.timezone())
+    updateSliderInput(session, "datetimes", min = start, max = end, value = c(start, end))
+    
     dateRangeInput("date_range", label = "Date Range", start = date_start,
                    end = date_end, min = date_min, max = date_end)
+
+    
   })
 
 

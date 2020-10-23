@@ -43,6 +43,12 @@ pool <- dbPool(odbc::odbc(), Driver = driver, Database = "airfire", UID = "user"
 # Load table references
 fires <- tbl(pool, in_schema("fire_info", "goes16_detects_shiny_vw"))
 
+# Get the minimum fire date
+min_fire_date <- fires %>%
+  summarise(date_min = min(StartTime, na.rm = TRUE)) %>%
+  collect() %>%
+  .$date_min
+
 palette <- leaflet::colorFactor("viridis", domain = c(10, 11, 12, 13, 14, 15,
                                                       30, 31, 32, 33, 34, 35))
 source("model.R")
