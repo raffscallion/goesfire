@@ -19,7 +19,7 @@ get_hourly_data <- function(df) {
   # the minimum value of 75
   valids <- df %>%
     dplyr::group_by(lon, lat) %>%
-    dplyr::summarise(ValidCount = sum(is.finite(Power)))
+    dplyr::summarise(ValidCount = sum(is.finite(PM25)))
 
   invalids <- dplyr::filter(valids, ValidCount < 2)
   valids <- dplyr::filter(valids, ValidCount >= 2)
@@ -27,8 +27,8 @@ get_hourly_data <- function(df) {
   hourly <- df %>%
     dplyr::inner_join(valids, by = c("lon", "lat")) %>%
     dplyr::group_by(lon, lat) %>%
-    dplyr::mutate(Interpolated = imputeTS::na.interpolation(Power),
-                  InterpolatedPM = imputeTS::na.interpolation(PM25),
+    dplyr::mutate(Interpolated = imputeTS::na_interpolation(Power),
+                  InterpolatedPM = imputeTS::na_interpolation(PM25),
                   Hour = lubridate::round_date(StartTime, unit = "hour")) %>%
     dplyr::group_by(lat, lon, Hour) %>%
     dplyr::summarise(Power = mean(Interpolated, na.rm = TRUE),
