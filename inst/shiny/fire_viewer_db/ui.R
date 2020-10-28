@@ -6,7 +6,7 @@ shinyUI(fluidPage(
   fluidRow(
     column(width = 2,
            uiOutput("date_range")),
-    column(width = 1, actionButton("set_dates", "Update",
+    column(width = 1, actionButton("set_dates", "Get Fires",
                                    style = "margin-top: 25px; float: left")),
     column(width = 8, offset = 1,
            sliderInput("datetimes", label = "Times (UTC)",

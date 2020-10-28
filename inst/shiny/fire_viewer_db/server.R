@@ -32,14 +32,10 @@ shinyServer(function(input, output, session) {
   # 2a. Map filter by datetime
   # 2b. Plot filter by map bounds
 
-  filtered_fires <- reactive({
-    if (is.null(input$masks)) return(NULL)
-    if (is.null(input$date_range)) return(NULL)
+  filtered_fires <- eventReactive(input$set_dates, {
 
-    # Don't fire if dates are changed unless button is pressed
-    input$set_dates
     date_range <- isolate(input$date_range)
-
+    
     fires %>%
       filter(Mask %in% !!input$masks,
              StartTime >= !!date_range[1],
@@ -100,7 +96,8 @@ shinyServer(function(input, output, session) {
       summarise(FireCount = n(),
                 TotalArea = sum(Area, na.rm = TRUE),
                 TotalFRE = sum(FRE, na.rm = TRUE),
-                TotalPM25 = sum(PM25, na.rm = TRUE))
+                TotalPM25 = sum(PM25, na.rm = TRUE),
+                .groups = "drop")
 
 
   })
@@ -188,10 +185,10 @@ shinyServer(function(input, output, session) {
     leaflet(options = leafletOptions(preferCanvas = TRUE)) %>%
       addProviderTiles(providers$Esri.WorldTopoMap, group = "Topo", options = providerTileOptions(updateWhenZooming = FALSE, updateWhenIdle = TRUE)) %>%
       addProviderTiles(providers$Esri.WorldGrayCanvas, group = "Gray", options = providerTileOptions(updateWhenZooming = FALSE, updateWhenIdle = TRUE)) %>%
-      addProviderTiles(providers$Esri.NatGeoWorldMap, group = "NatGeo", options = providerTileOptions(updateWhenZooming = FALSE, updateWhenIdle = TRUE)) %>%
       addProviderTiles(providers$Esri.WorldImagery, group = "Imagery", options = providerTileOptions(updateWhenZooming = FALSE, updateWhenIdle = TRUE)) %>%
       addProviderTiles(providers$Esri.WorldTerrain, group = "Terrain", options = providerTileOptions(updateWhenZooming = FALSE, updateWhenIdle = TRUE)) %>%
       addProviderTiles(providers$Esri.WorldPhysical, group = "Physical", options = providerTileOptions(updateWhenZooming = FALSE, updateWhenIdle = TRUE)) %>%
+      addProviderTiles(providers$Esri.NatGeoWorldMap, group = "NatGeo", options = providerTileOptions(updateWhenZooming = FALSE, updateWhenIdle = TRUE)) %>%
       setView(-98, 38, zoom = 5) %>%
       registerPlugin(plugin_lasso) %>%
       # Add lasso control
