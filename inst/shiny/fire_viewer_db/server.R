@@ -7,16 +7,16 @@ shinyServer(function(input, output, session) {
     date_end <- Sys.Date() + 1
     date_min <- min_fire_date
     date_start <- Sys.Date() - 5
-    
+
     # Also update the time slider
     start <- as.POSIXct(date_start, tz = Sys.timezone())
     end <- as.POSIXct(date_end, tz = Sys.timezone())
     updateSliderInput(session, "datetimes", min = start, max = end, value = c(start, end))
-    
+
     dateRangeInput("date_range", label = "Date Range", start = date_start,
                    end = date_end, min = date_min, max = date_end)
 
-    
+
   })
 
 
@@ -35,7 +35,7 @@ shinyServer(function(input, output, session) {
   filtered_fires <- eventReactive(input$set_dates, {
 
     date_range <- isolate(input$date_range)
-    
+
     fires %>%
       filter(Mask %in% !!input$masks,
              StartTime >= !!date_range[1],
@@ -48,6 +48,29 @@ shinyServer(function(input, output, session) {
                                 "Power: {formatC(Power, digits = 4)} MW<br/>",
                                 "Temp: {formatC(Temp, digits = 4)} K<br/>",
                                 "PM<sub>2.5</sub>: {formatC(PM25, digits = 4)} kg<br/>"))
+  })
+
+  filtered_polys <- eventReactive(input$set_dates, {
+
+    date_range <- isolate(input$date_range)
+
+    fires <- perimeters %>%
+      filter(perimeter_date_time_utc >= !!date_range[1],
+             perimeter_date_time_utc < !!(date_range[2] + 1)) %>%
+      mutate(Shape = ST_AsText(shape)) %>%
+      select(-shape) %>%
+      collect()
+
+    if (nrow(fires) > 0) {
+      fires <- fires %>%
+        sf::st_as_sf(wkt = "Shape", crs = 4326) %>%
+        mutate(Label = paste(incident_name, perimeter_date_time_utc))
+    } else {
+      return(NULL)
+    }
+
+    return(fires)
+
   })
 
   map_data <- reactive({
@@ -210,6 +233,7 @@ shinyServer(function(input, output, session) {
 
   observe({
     df <- map_data()
+    perims <- filtered_polys()
     if (is.null(df)) return()
     time <- df$StartTime[1]
     lp <- leafletProxy("map", data = df) %>%
@@ -218,13 +242,20 @@ shinyServer(function(input, output, session) {
       clearControls() %>%
       addTerminator(time = time, options = pathOptions(fillOpacity = 0.2))
 
+    if (!is.null(perims)) {
+      lp <- lp %>%
+        addPolygons(data = perims, color = "#FF0000",
+                    fillColor = "#555555", opacity = 1, weight = 2,
+                    label = ~Label, group = "Perimeters")
+    }
+
     lp <- lp %>%
        addCircleMarkers(lng = ~lon, lat = ~lat, popup = ~Label, opacity = 1,
                        fillOpacity = 0.5, weight = 2, group = "GOES",
                        fillColor = ~palette(Mask), color = ~palette(Mask), radius = 4) %>%
       addFullscreenControl(pseudoFullscreen = TRUE) %>%
       addLayersControl(baseGroups = c("NatGeo", "Topo", "Gray", "Imagery", "Terrain", "Physical"),
-                       overlayGroups = c("GOES"))
+                       overlayGroups = c("Perimeters", "GOES"))
 
     if (nrow(df) > 0) {
       lp <- lp %>%

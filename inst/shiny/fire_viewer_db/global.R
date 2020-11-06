@@ -42,6 +42,7 @@ pool <- dbPool(odbc::odbc(), Driver = driver, Database = "airfire", UID = "user"
 
 # Load table references
 fires <- tbl(pool, in_schema("fire_info", "goes16_detects_shiny_vw"))
+perimeters <- tbl(pool, in_schema("fire_info", "goes16_fire_perimeters_shiny_vw"))
 
 # Get the minimum fire date
 min_fire_date <- fires %>%
