@@ -97,6 +97,7 @@ assign_fips <- function(locs, counties = counties_sf) {
   locs_sf <- sf::st_as_sf(locs, coords = c("lon", "lat"), crs = 4326) %>%
     sf::st_transform(crs = proj)
 
+  counties <- sf::st_transform(counties, crs = proj)
 
   suppressWarnings(sf::st_intersection(locs_sf, counties)) %>%
     sf::st_set_geometry(NULL) %>%
