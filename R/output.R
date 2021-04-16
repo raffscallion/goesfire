@@ -53,7 +53,7 @@ output_SMOKE <- function(fires, path) {
   }
 
   fires <- fires %>%
-    dplyr::mutate(PBOT = PlumeTop * 0.25,
+    dplyr::mutate(PBOT = PlumeTop * 0.1,
                   LAY1F = lay1(Power))
 
   # Fire names must be <= 11 characters and contain no whitespace
@@ -105,7 +105,7 @@ assign_fips <- function(locs, counties = counties_sf) {
 }
 
 
-make_ptinv <- function(df, path, scc = "2810001000") {
+make_ptinv <- function(df, path, scc = "28100010F0") {
 
   # Format described at
   # https://www.cmascenter.org/smoke/documentation/3.5/html/ch08s02s10.html#tbl_input_ptinv_ida
@@ -119,7 +119,7 @@ make_ptinv <- function(df, path, scc = "2810001000") {
     dplyr::mutate(STID = STATEFP,
                   CYID = COUNTYFP,
                   PLANTID = PointId,
-                  POINTID = 1,
+                  POINTID = "",
                   STACKID = 1,
                   Empty1 = "",
                   SCC = scc,
@@ -137,8 +137,8 @@ make_ptinv <- function(df, path, scc = "2810001000") {
                   Empty1 = stringr::str_pad(Empty1, 54),
                   SCC = stringr::str_pad(SCC, 10),
                   Empty2 = stringr::str_pad(Empty2, 119),
-                  LATC = stringr::str_pad(sprintf("%.4f", LATC), 9),
-                  LONC = stringr::str_pad(sprintf("%.4f", LONC), 9)) %>%
+                  LATC = stringr::str_pad(sprintf("%.4f", LATC), 8),
+                  LONC = stringr::str_pad(sprintf("%.4f", LONC), 11)) %>%
     dplyr::transmute(Line = paste0(STID, CYID, PLANTID, POINTID, STACKID, Empty1, SCC,
                                    Empty2, LATC, LONC))
 
@@ -157,7 +157,7 @@ make_ptinv <- function(df, path, scc = "2810001000") {
 
 }
 
-make_pthour <- function(df, path, scc = "2810001000") {
+make_pthour <- function(df, path, scc = "28100010F0") {
 
   # Format described at
   # https://www.cmascenter.org/smoke/documentation/3.5/html/ch08s02s09.html#tbl_input_pthour_ems
@@ -171,7 +171,7 @@ make_pthour <- function(df, path, scc = "2810001000") {
     dplyr::mutate(STID = STATEFP,
                   CYID = COUNTYFP,
                   FCID = PointId,
-                  SKID = 1,
+                  SKID = "",
                   DVID = 1,
                   DATE = as.Date(Hour),
                   HOUR = paste0("Hr", sprintf("%02d", lubridate::hour(Hour))),
@@ -198,7 +198,7 @@ make_pthour <- function(df, path, scc = "2810001000") {
                   SKID = stringr::str_pad(SKID, 12, "right"),
                   DVID = stringr::str_pad(DVID, 12, "right"),
                   PRID = "            ",
-                  POLID = stringr::str_pad(Parameter, 5, "right"),
+                  POLID = stringr::str_pad(Parameter, 6, "right"),
                   DATE = paste0(format(DATE, format = "%m/%d/%y"), "GMT"),
                   DAYTOT = "         ") %>%
     dplyr::mutate_at(dplyr::vars(dplyr::ends_with("_.")),
