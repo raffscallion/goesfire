@@ -202,7 +202,6 @@ make_pthour <- function(df, path, scc = "2810001000") {
                   DATE = paste0(format(DATE, format = "%m/%d/%y"), "GMT"),
                   DAYTOT = "         ") %>%
     dplyr::mutate_at(dplyr::vars(dplyr::ends_with("_.")),
-                     #.funs = dplyr::funs(. = sprintf("%7.3G", .))) %>%
                      .funs = dplyr::funs(. = formatC(., width = 7, format = "G"))) %>%
     dplyr::transmute(Line = paste0(STID, CYID, FCID, SKID, DVID, PRID, POLID, DATE,
                                    Hr00_._., Hr01_._., Hr02_._., Hr03_._., Hr04_._.,

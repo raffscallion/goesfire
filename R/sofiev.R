@@ -17,6 +17,7 @@ calculate_plume_top <- function(fires, met_path) {
 
   # Process plume rise, grouping hours by needed met file
   met_files <- dplyr::distinct(dplyr::select(fires, MetFile))
+  # Doesn't look like the line above does anything
 
   nested <- dplyr::group_by(fires, MetFile) %>%
     tidyr::nest()
@@ -40,6 +41,7 @@ assign_met_files <- function(fires, met_path) {
 
   # All of the hours in the fires we want to process
   hours <- dplyr::distinct(dplyr::select(fires, Hour))
+  # Doesn't look like the line above does anything
 
   # Hours available in the met files
   met_files <- fs::dir_ls(met_path, glob = "*.nc")
@@ -70,7 +72,7 @@ calculate_sofiev <- function(fires, met_file) {
   xlon <- ncdf4::ncvar_get(nc, "XLONG")[,,1]
   resolution <- ncdf4::ncatt_get(nc, 0)$DX
 
-  # Only need the unqie lat/lons
+  # Only need the unique lat/lons
   coords <- dplyr::distinct(dplyr::select(fires, lon, lat))
   print("Extracting grid indices")
   indices <- purrr::map2_dfr(coords$lon, coords$lat, get_grid_index, xlon, xlat, resolution)
@@ -83,8 +85,6 @@ calculate_sofiev <- function(fires, met_file) {
   # Subset of the values we need converted from arrays to lists
 
   # This approach is slow, but functional
-
-  ## Terrain height came out wrong... try reversing i and j
   extract_var <- function(i, j, var, dims) {
     if (dims == 3) {
       ncdf4::ncvar_get(nc, var)[j, i,]
