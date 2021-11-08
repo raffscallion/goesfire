@@ -55,8 +55,8 @@ shinyServer(function(input, output, session) {
     date_range <- isolate(input$date_range)
 
     fires <- perimeters %>%
-      filter(perimeter_date_time_utc >= !!date_range[1],
-             perimeter_date_time_utc < !!(date_range[2] + 1)) %>%
+      filter(gofast_date_utc >= !!date_range[1],
+             gofast_date_utc < !!(date_range[2] + 1)) %>%
       mutate(Shape = ST_AsText(shape)) %>%
       select(-shape) %>%
       collect()
