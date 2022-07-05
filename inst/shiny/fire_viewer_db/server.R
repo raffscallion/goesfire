@@ -58,7 +58,7 @@ shinyServer(function(input, output, session) {
       filter(gofast_date_utc >= !!date_range[1],
              gofast_date_utc < !!(date_range[2] + 1)) %>%
       group_by(irwin_id) %>%
-      filter(gofast_date_utc == max(gofast_date_utc)) %>%
+      filter(gofast_date_utc == max(gofast_date_utc, na.rm = TRUE)) %>%
       mutate(Shape = ST_AsText(shape)) %>%
       select(-shape) %>%
       collect()
