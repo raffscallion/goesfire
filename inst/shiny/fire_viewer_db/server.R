@@ -57,6 +57,8 @@ shinyServer(function(input, output, session) {
     fires <- perimeters %>%
       filter(gofast_date_utc >= !!date_range[1],
              gofast_date_utc < !!(date_range[2] + 1)) %>%
+      group_by(irwin_id) %>%
+      filter(gofast_date_utc == max(gofast_date_utc)) %>%
       mutate(Shape = ST_AsText(shape)) %>%
       select(-shape) %>%
       collect()
@@ -96,6 +98,7 @@ shinyServer(function(input, output, session) {
   })
 
   plot_data <- reactive({
+
     df <- filtered_fires()
     validate(need(nrow(df > 0), "No fires"),
              need(!is.null(input$map_bounds), "Waiting for map"))
@@ -213,6 +216,10 @@ shinyServer(function(input, output, session) {
       addProviderTiles(providers$Esri.WorldPhysical, group = "Physical", options = providerTileOptions(updateWhenZooming = FALSE, updateWhenIdle = TRUE)) %>%
       addProviderTiles(providers$Esri.NatGeoWorldMap, group = "NatGeo", options = providerTileOptions(updateWhenZooming = FALSE, updateWhenIdle = TRUE)) %>%
       setView(-98, 38, zoom = 5) %>%
+      addFullscreenControl(pseudoFullscreen = TRUE) %>%
+      addLayersControl(baseGroups = c("NatGeo", "Topo", "Gray", "Imagery", "Terrain", "Physical"),
+                       overlayGroups = c("Perimeters", "GOES")) %>%
+      hideGroup("Perimeters") %>%
       registerPlugin(plugin_lasso) %>%
       # Add lasso control
       onRender("function (el, x) {
@@ -233,7 +240,12 @@ shinyServer(function(input, output, session) {
 
   observe({
     df <- map_data()
-    perims <- filtered_polys()
+    if ("Perimeters" %in% input$map_groups) {
+      perims <- filtered_polys()
+    } else {
+      perims <- NULL
+    }
+
     if (is.null(df)) return()
     time <- df$StartTime[1]
     lp <- leafletProxy("map", data = df) %>%
@@ -252,10 +264,7 @@ shinyServer(function(input, output, session) {
     lp <- lp %>%
        addCircleMarkers(lng = ~lon, lat = ~lat, popup = ~Label, opacity = 1,
                        fillOpacity = 0.5, weight = 2, group = "GOES",
-                       fillColor = ~palette(Mask), color = ~palette(Mask), radius = 4) %>%
-      addFullscreenControl(pseudoFullscreen = TRUE) %>%
-      addLayersControl(baseGroups = c("NatGeo", "Topo", "Gray", "Imagery", "Terrain", "Physical"),
-                       overlayGroups = c("Perimeters", "GOES"))
+                       fillColor = ~palette(Mask), color = ~palette(Mask), radius = 4)
 
     if (nrow(df) > 0) {
       lp <- lp %>%
