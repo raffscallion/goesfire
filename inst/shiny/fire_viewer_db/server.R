@@ -36,13 +36,31 @@ shinyServer(function(input, output, session) {
 
     date_range <- isolate(input$date_range)
 
-    fires %>%
+    if (input$source == "Best Available") {
+      tbl_src <- fires_blended
+    } else {
+      tbl_src <- fires
+    }
+
+    source_filter <- switch(input$source,
+                            "GOES-18" = "G18",
+                            "GOES-19" = "G19",
+                            NULL)
+
+    df <- tbl_src %>%
       filter(Mask %in% !!input$masks,
              StartTime >= !!date_range[1],
-             StartTime < !!(date_range[2] + 1)) %>%
+             StartTime < !!(date_range[2] + 1))
+    if (!is.null(source_filter)) {
+      df <- df %>%
+        filter(source == source_filter)
+    }
+
+    df <- df  %>%
       collect() %>%
       mutate(Label = glue::glue("({formatC(lon, digits = 6)}, {formatC(lat, digits = 5)})<br/>",
                                 "{StartTime}<br/>",
+                                "Source: {source}<br/>",
                                 "Mask: {Mask}<br/>",
                                 "Area: {formatC(Area, digits = 4)} km<sup>2</sup><br/>",
                                 "Power: {formatC(Power, digits = 4)} MW<br/>",
