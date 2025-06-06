@@ -4,6 +4,18 @@ shinyUI(fluidPage(
   title = "GEOS Fire Viewer",
 
   fluidRow(
+    br()
+  ),
+  fluidRow(
+    column(width = 1,
+           tags$a(
+             href = "https://portal.airfire.org/",
+             tags$img(src = "USFS.png",
+                      title = "AirFire Tools Home",
+                      width = "50",
+                      height = "50")
+             )
+           ),
     column(width = 2,
            uiOutput("date_range")),
     column(width = 2,
@@ -13,14 +25,16 @@ shinyUI(fluidPage(
                        selected = "Best Available")),
     column(width = 1, actionButton("set_dates", "Get Fires",
                                    style = "margin-top: 25px; float: left")),
-    column(width = 6, offset = 1,
+    column(width = 3, offset = 1,
            sliderInput("datetimes", label = "Times (UTC)",
                        min = as.POSIXct(Sys.Date() - 1, tz = "UTC"),
                        max = as.POSIXct(Sys.Date() + 1, tz = "UTC"),
                        value = c(as.POSIXct(Sys.Date() - 1, tz = "UTC"),
                                  as.POSIXct(Sys.Date() + 1, tz = "UTC")),
                        width = "100%", step = 60 * 5, animate = TRUE,
-                       timezone = "+0000"))
+                       timezone = "+0000")),
+    column(1, offset = 1,
+           actionButton("about", "About this tool"))
   ),
   fluidRow(
     column(width = 9,

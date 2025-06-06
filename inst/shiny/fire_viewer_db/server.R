@@ -27,6 +27,16 @@ shinyServer(function(input, output, session) {
     updateSliderInput(session, "datetimes", min = start, max = end, value = c(start, end))
   })
 
+  # Some info in the about button
+  observeEvent(input$about, {
+    showModal(modalDialog(
+      HTML(about_content),
+      title = "About GoFAST",
+      easyClose = TRUE
+    ))
+  })
+
+
   # Split reactives into three
   # 1. Filter by mask value and broad date range
   # 2a. Map filter by datetime
@@ -348,3 +358,24 @@ shinyServer(function(input, output, session) {
   }
 
 })
+
+about_content <- "
+The GOES Fire and Smoke Tool (GoFAST) is a viewer of the NOAA GOES-18 (GOES west) and GOES-19 (GOES east) satellite fire detections. The data are obtained from the University of Wisconsin Space Science and Engineering Center (SSEC). PM<sub>2.5</sub> is calculated using the NASA FEER algorithm (Ichoku and Ellison, 2014). Use the lasso tool to “lasso” a selection of fire detections and obtain csv files of fire PM<sub>2.5</sub> emissions estimated using FEER and allocated hourly according to the fire radiative energy (FRE) of the detections.  Also output are daily diurnal profiles of fire activity. Support was provided by the NASA Health and Air Quality Applied Sciences Team (HAQAST) program.
+<br>
+<br>
+
+See also:
+<br>
+<a href='https://www.goes-r.gov/'>https://www.goes-r.gov</a>
+<br>
+<a href='https://wfabba.ssec.wisc.edu/index.html'>https://wfabba.ssec.wisc.edu</a>
+<br>
+<br>
+Ichoku, C., & Ellison, L. (2014). Global top-down smoke-aerosol emissions estimation using satellite fire radiative power measurements. Atmospheric Chemistry and Physics, 14(13), 6643-6667.
+<br>
+O’Neill, S. M., Diao, M., Raffuse, S., Al-Hamdan, M., Barik, M., Jia, Y., ... & Loesche, P. (2021). A multi-analysis approach for estimating regional health impacts from the 2017 Northern California wildfires. Journal of the Air & Waste Management Association, 71(7), 791-814.
+<br>
+<br>
+Developed by the <a href='https://airquality.ucdavis.edu/'>UC Davis Air Quality Research Center</a> and supported by the USDA Forest Service
+
+"
